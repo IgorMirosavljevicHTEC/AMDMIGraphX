@@ -1165,10 +1165,8 @@ struct experimental_custom_op_base
     virtual std::string name() const                                            = 0;
     virtual argument compute(context ctx, shape output, arguments inputs) const = 0;
     virtual shape compute_shape(shapes inputs) const                            = 0;
-    virtual std::ptrdiff_t output_alias(shapes inputs) const         {
-        return inputs.size()-1;
-    }
-    virtual ~experimental_custom_op_base()                                      = default;
+    virtual std::ptrdiff_t output_alias(shapes inputs) const { return inputs.size() - 1; }
+    virtual ~experimental_custom_op_base() = default;
 };
 
 struct experimental_custom_op : interface_base<MIGRAPHX_HANDLE_BASE(experimental_custom_op)>
