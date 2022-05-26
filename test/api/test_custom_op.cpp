@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <cmath>
+#include <cstddef>
 #include <migraphx/migraphx.h>
 #include <migraphx/migraphx.hpp>
 #include "test.hpp"

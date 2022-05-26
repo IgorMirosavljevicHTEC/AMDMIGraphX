@@ -248,6 +248,10 @@ struct custom_operation
     {
         return op.compute(std::move(ctx), std::move(output_shape), std::move(inputs));
     }
+
+    std::ptrdiff_t output_alias(std::vector<shape> inputs) const {
+        return op.output_alias(std::move(inputs));
+    }
 };
 
 template <class CustomOp>

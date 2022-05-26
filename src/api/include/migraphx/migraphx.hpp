@@ -393,7 +393,8 @@ struct interface_base : Base
     template <class T, class U>
     void auto_assign(rank<0>, T* out, U x)
     {
-        return *out = x;
+        *out = x;
+        return;
     }
 
     template <class T, class U>
@@ -1164,6 +1165,9 @@ struct experimental_custom_op_base
     virtual std::string name() const                                            = 0;
     virtual argument compute(context ctx, shape output, arguments inputs) const = 0;
     virtual shape compute_shape(shapes inputs) const                            = 0;
+    virtual std::ptrdiff_t output_alias(shapes inputs) const         {
+        return inputs.size()-1;
+    }
     virtual ~experimental_custom_op_base()                                      = default;
 };
 
@@ -1175,6 +1179,7 @@ struct experimental_custom_op : interface_base<MIGRAPHX_HANDLE_BASE(experimental
         this->make_interface(&migraphx_experimental_custom_op_create, obj, obj.name().c_str());
         MIGRAPHX_INTERFACE_LIFT(T, experimental_custom_op, compute_shape);
         MIGRAPHX_INTERFACE_LIFT(T, experimental_custom_op, compute);
+        MIGRAPHX_INTERFACE_LIFT(T, experimental_custom_op, output_alias);
     }
 
     void register_op() { call(&migraphx_experimental_custom_op_register, this->get_handle_ptr()); }
