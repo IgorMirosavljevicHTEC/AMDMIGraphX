@@ -36,6 +36,15 @@ bool is_device_ptr(const void* ptr)
     return attr.memoryType == hipMemoryTypeDevice;
 }
 
+bool is_host_ptr(const void* ptr)
+{
+    hipPointerAttribute_t attr;
+    auto status = hipPointerGetAttributes(&attr, ptr);
+    if(status != hipSuccess)
+        return false;
+    return attr.memoryType == hipMemoryTypeHost;
+}
+
 std::size_t get_available_gpu_memory()
 {
     size_t free;
@@ -74,9 +83,11 @@ hip_ptr allocate_gpu(std::size_t sz, bool host = false)
 
 hip_host_ptr register_on_gpu(void* ptr, std::size_t sz)
 {
-    auto status = hipHostRegister(ptr, sz, hipHostRegisterMapped);
-    if(status != hipSuccess)
-        MIGRAPHX_THROW("Gpu register failed: " + hip_error(status));
+    if(is_host_ptr(ptr)) {
+        auto status = hipHostRegister(ptr, sz, hipHostRegisterMapped);
+        if(status != hipSuccess)
+            MIGRAPHX_THROW("Gpu register failed: " + hip_error(status));
+    }
     return hip_host_ptr{ptr};
 }
 
