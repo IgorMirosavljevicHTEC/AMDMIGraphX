@@ -83,7 +83,8 @@ hip_ptr allocate_gpu(std::size_t sz, bool host = false)
 
 hip_host_ptr register_on_gpu(void* ptr, std::size_t sz)
 {
-    if(is_host_ptr(ptr)) {
+    if(is_host_ptr(ptr))
+    {
         auto status = hipHostRegister(ptr, sz, hipHostRegisterMapped);
         if(status != hipSuccess)
             MIGRAPHX_THROW("Gpu register failed: " + hip_error(status));
