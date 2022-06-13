@@ -36,15 +36,6 @@ bool is_device_ptr(const void* ptr)
     return attr.memoryType == hipMemoryTypeDevice;
 }
 
-bool is_host_ptr(const void* ptr)
-{
-    hipPointerAttribute_t attr;
-    auto status = hipPointerGetAttributes(&attr, ptr);
-    if(status != hipSuccess)
-        return false;
-    return attr.memoryType == hipMemoryTypeHost;
-}
-
 std::size_t get_available_gpu_memory()
 {
     size_t free;
@@ -83,9 +74,11 @@ hip_ptr allocate_gpu(std::size_t sz, bool host = false)
 
 hip_host_ptr register_on_gpu(void* ptr, std::size_t sz)
 {
-    if(is_host_ptr(ptr))
+    void* result = nullptr;
+    auto status  = hipHostGetDevicePointer(&result, ptr, 0);
+    if(status != hipSuccess)
     {
-        auto status = hipHostRegister(ptr, sz, hipHostRegisterMapped);
+        status = hipHostRegister(ptr, sz, hipHostRegisterMapped);
         if(status != hipSuccess)
             MIGRAPHX_THROW("Gpu register failed: " + hip_error(status));
     }
@@ -134,6 +127,8 @@ argument allocate_gpu(const shape& s, bool host)
 argument register_on_gpu(const argument& arg)
 {
     auto arg_shared = arg.share();
+    std::cout << "registering on GPU" << std::endl;
+    std::cout << arg_shared.to_string() << std::endl;
     auto p          = share(register_on_gpu(arg_shared.data(), arg_shared.get_shape().bytes()));
     return {arg_shared.get_shape(), [p, a = std::move(arg_shared)]() mutable {
                 return get_device_ptr(p.get());

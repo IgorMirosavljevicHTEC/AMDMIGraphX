@@ -235,7 +235,7 @@ struct custom_operation
         return pack();
     }
     CustomOp op;
-    std::string name() const { return op.xobject.name; }
+    std::string name() const { return "custom_"+op.xobject.name; }
 
     shape compute_shape(std::vector<shape> inputs) const
     {
@@ -252,6 +252,10 @@ struct custom_operation
     std::ptrdiff_t output_alias(std::vector<shape> inputs) const
     {
         return op.output_alias(std::move(inputs));
+    }
+
+    bool runs_on_offload_target() const {
+        return op.runs_on_offload_target();
     }
 };
 

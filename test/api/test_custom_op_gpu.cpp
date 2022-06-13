@@ -10,29 +10,33 @@ struct simple_custom_op final : migraphx::experimental_custom_op_base
     virtual migraphx::argument
     compute(migraphx::context ctx, migraphx::shape, migraphx::arguments inputs) const override
     {
-        // sets first half size_bytes of the input 0, and rest of the half bytes are copied.
+        //sets first half size_bytes of the input 0, and rest of the half bytes are copied.
         float* d_output;
-        auto* h_output   = reinterpret_cast<float*>(inputs[1].data());
+        auto* h_output   = reinterpret_cast<float*>(inputs[0].data());
         auto input_bytes = inputs[0].get_shape().bytes();
         auto copy_bytes  = input_bytes / 2;
         MIGRAPHX_HIP_ASSERT(hipSetDevice(0));
         MIGRAPHX_HIP_ASSERT(hipMalloc(&d_output, input_bytes));
         MIGRAPHX_HIP_ASSERT(hipMemcpyAsync(d_output,
-                                           inputs[0].data(),
+                                           h_output,
                                            input_bytes,
                                            hipMemcpyHostToDevice,
                                            ctx.get_queue<hipStream_t>()));
-        MIGRAPHX_HIP_ASSERT(hipMemset(d_output, 0, copy_bytes));
+        MIGRAPHX_HIP_ASSERT(hipMemset(d_output, 2, copy_bytes));
         MIGRAPHX_HIP_ASSERT(hipMemcpy(h_output, d_output, input_bytes, hipMemcpyDeviceToHost));
         MIGRAPHX_HIP_ASSERT(hipFree(d_output));
-        return inputs[1];
+        return inputs[0];
     }
 
     virtual migraphx::shape compute_shape(migraphx::shapes inputs) const override
     {
-        CHECK(inputs.size() == 2);
-        CHECK(bool{inputs[0] == inputs[1]});
+        // CHECK(inputs.size() == 2);
+        // CHECK(bool{inputs[0] == inputs[1]});
         return inputs.back();
+    }
+
+    virtual bool runs_on_offload_target() const override {
+        return true;
     }
 };
 
@@ -44,10 +48,14 @@ TEST_CASE(run_simple_custom_op)
     migraphx::shape s{migraphx_shape_float_type, {4, 3}};
     migraphx::module m = p.get_main_module();
     auto x             = m.add_parameter("x", s);
-    auto alloc         = m.add_allocation(s);
-    auto custom_kernel = m.add_instruction(migraphx::operation("simple_custom_op"), {x, alloc});
-    m.add_return({custom_kernel});
-    p.compile(migraphx::target("gpu"));
+    auto relu = m.add_instruction(migraphx::operation("relu"), {x});
+    auto alloc = m.add_allocation(s);
+    auto custom_kernel = m.add_instruction(migraphx::operation("custom_simple_custom_op"), {relu});
+    auto neg = m.add_instruction(migraphx::operation("neg"), {custom_kernel});
+    m.add_return({neg});
+    migraphx::compile_options options;
+    options.set_offload_copy(true);
+    p.compile(migraphx::target("gpu"), options);
     migraphx::program_parameters pp;
     std::vector<float> x_data(12, 1);
     std::vector<float> ret_data(12, -1);
@@ -56,8 +64,14 @@ TEST_CASE(run_simple_custom_op)
     auto results = p.eval(pp);
     auto result  = results[0];
     std::vector<float> expected_result(12, 0);
-    std::fill(expected_result.begin() + 6, expected_result.end(), 1);
-    EXPECT(bool{result == migraphx::argument(s, expected_result.data())});
+    std::cout << "after run" << std::endl;
+    std::fill(expected_result.begin() + 6, expected_result.end(), -1);
+    auto result_vec = result.as_vector<float>();
+    for(const auto& i : result_vec) {
+        std::cout << i << " ";
+    }
+    std::cout << std::endl;
+    EXPECT(bool{result_vec == expected_result});
 }
 
 int main(int argc, const char* argv[]) { test::run(argc, argv); }
