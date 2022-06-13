@@ -235,7 +235,8 @@ struct miopen_apply
             {
                 check_shape(s, insert_precompile_op(it));
             }
-            else if(starts_with(it->name(), "custom")) {
+            else if(starts_with(it->name(), "custom"))
+            {
                 check_shape(s, insert_custom_op(it));
             }
         }
@@ -243,9 +244,11 @@ struct miopen_apply
         copy_params();
     }
 
-    instruction_ref insert_custom_op(instruction_ref ins) const {
-        const auto& custom_op = ins->get_operator(); 
-        if(custom_op.runs_on_offload_target()) {
+    instruction_ref insert_custom_op(instruction_ref ins) const
+    {
+        const auto& custom_op = ins->get_operator();
+        if(custom_op.runs_on_offload_target())
+        {
             auto s      = ins->get_shape();
             auto output = insert_allocation(ins, s);
             std::vector<instruction_ref> cpu_inputs;

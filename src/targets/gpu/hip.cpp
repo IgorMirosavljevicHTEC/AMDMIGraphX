@@ -129,7 +129,7 @@ argument register_on_gpu(const argument& arg)
     auto arg_shared = arg.share();
     std::cout << "registering on GPU" << std::endl;
     std::cout << arg_shared.to_string() << std::endl;
-    auto p          = share(register_on_gpu(arg_shared.data(), arg_shared.get_shape().bytes()));
+    auto p = share(register_on_gpu(arg_shared.data(), arg_shared.get_shape().bytes()));
     return {arg_shared.get_shape(), [p, a = std::move(arg_shared)]() mutable {
                 return get_device_ptr(p.get());
             }}; // namespace gpu

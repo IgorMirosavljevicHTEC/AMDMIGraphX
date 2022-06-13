@@ -399,11 +399,10 @@ auto has_finalize_op(const T&) -> decltype(has_finalize_op(rank<1>{},
 }
 
 template <class T>
-auto runs_on_offload_target(
-    rank<1>, T& x)
+auto runs_on_offload_target(rank<1>, T& x)
     -> decltype(x.runs_on_offload_target() ? std::true_type{} : std::false_type{})
 {
-   return {};
+    return {};
 }
 
 template <class T>
@@ -418,13 +417,10 @@ auto runs_on_offload_target(T& x) -> decltype(runs_on_offload_target(rank<1>{}, 
 }
 
 template <class T>
-auto has_offload_copy(
-    rank<1>, T& x)
-    -> decltype(x.runs_on_offload_target(), std::true_type{});
+auto has_offload_copy(rank<1>, T& x) -> decltype(x.runs_on_offload_target(), std::true_type{});
 
 template <class T>
-auto has_offload_copy(rank<0>, T&)
-    -> std::false_type;
+auto has_offload_copy(rank<0>, T&) -> std::false_type;
 
 template <class T>
 auto has_offload_copy(const T&) -> decltype(has_offload_copy(rank<1>{}, std::declval<T&>()))
@@ -494,7 +490,8 @@ lifetime get_lifetime_op(const T&)
              const   = True,
              default = 'detail::need_normalization_op'),
      virtual('has_finalize', returns = 'bool', const = True, default = 'detail::has_finalize_op'),
-     virtual('has_offload_copy', returns='bool', const=True, default='detail::has_offload_copy'), 
+     virtual(
+         'has_offload_copy', returns = 'bool', const = True, default = 'detail::has_offload_copy'),
      virtual(
          'get_lifetime', returns = 'lifetime', const = True, default = 'detail::get_lifetime_op'),
      virtual('output_alias',
@@ -513,7 +510,10 @@ lifetime get_lifetime_op(const T&)
              output  = 'const shape&',
              input   = 'const std::vector<shape>&',
              default = 'detail::finalize_op'),
-     virtual('runs_on_offload_target', returns='bool', const=True, default='detail::runs_on_offload_target'), 
+     virtual('runs_on_offload_target',
+             returns = 'bool',
+             const   = True,
+             default = 'detail::runs_on_offload_target'),
      virtual('compute_shape',
              returns = 'shape',
              input   = 'const std::vector<shape>&',
