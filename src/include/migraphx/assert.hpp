@@ -23,7 +23,7 @@ auto abort_on_throw(F f) -> decltype(f())
     catch(...)
     {
         std::cerr << "Unknown exception" << std::endl;
-                    std::abort();
+        std::abort();
     }
 }
 #ifdef NDEBUG
