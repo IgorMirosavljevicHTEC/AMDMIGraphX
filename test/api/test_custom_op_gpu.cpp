@@ -84,10 +84,10 @@ TEST_CASE(run_simple_custom_op)
     std::vector<float> x_data(12, 1);
     std::vector<float> ret_data(12, -1);
     pp.add("x", migraphx::argument(s, x_data.data()));
-    auto results = p.eval(pp);
-    auto result  = results[0];
+    auto results                       = p.eval(pp);
+    auto result                        = results[0];
     std::vector<float> expected_result = {0, 0, -1, -1, 0, 0, -1, -1, 0, 0, -1, -1};
-    auto result_vec = result.as_vector<float>();
+    auto result_vec                    = result.as_vector<float>();
     EXPECT(migraphx::verify_range(result_vec, expected_result));
 }
 
