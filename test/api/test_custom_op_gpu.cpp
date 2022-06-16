@@ -1,3 +1,4 @@
+#include <cstddef>
 #include <hip/hip_runtime_api.h>
 #include <migraphx/migraphx.h>
 #include <migraphx/verify.hpp>
@@ -34,18 +35,46 @@ struct simple_custom_op final : migraphx::experimental_custom_op_base
 
     virtual bool runs_on_offload_target() const override { return true; }
 };
+struct transpose_custom_op final : migraphx::experimental_custom_op_base
+{
+    virtual std::string name() const override { return "transpose_custom_op"; }
+    virtual migraphx::argument
+    compute(migraphx::context, migraphx::shape out_shape, migraphx::arguments inputs) const override
+    {
+        return migraphx::argument(out_shape, inputs[0].data());
+    }
+
+    virtual migraphx::shape compute_shape(migraphx::shapes inputs) const override
+    {
+        CHECK(inputs.size() == 1);
+        migraphx::shape input_s = inputs[0];
+        std::vector<size_t> dims = input_s.lengths(); 
+        std::vector<size_t> strides = input_s.strides();
+        std::reverse(dims.begin(), dims.end());
+        std::reverse(strides.begin(), strides.end());
+        migraphx::shape output_shape{input_s.type(), dims, strides};
+        return output_shape;
+    }
+
+    virtual bool runs_on_offload_target() const override { return false; }
+    virtual std::ptrdiff_t output_alias(migraphx::shapes) const override { return 0;};
+};
 
 TEST_CASE(run_simple_custom_op)
 {
     simple_custom_op simple_op;
     migraphx::register_experimental_custom_op(simple_op);
+    transpose_custom_op transpose_op;
+    migraphx::register_experimental_custom_op(transpose_op);
+
     migraphx::program p;
     migraphx::shape s{migraphx_shape_float_type, {4, 3}};
     migraphx::module m = p.get_main_module();
     auto x             = m.add_parameter("x", s);
     auto relu          = m.add_instruction(migraphx::operation("relu"), {x});
     auto custom_kernel = m.add_instruction(migraphx::operation("simple_custom_op"), {relu});
-    auto neg           = m.add_instruction(migraphx::operation("neg"), {custom_kernel});
+    auto transposed_custom = m.add_instruction(migraphx::operation("transpose_custom_op"), {custom_kernel});
+    auto neg = m.add_instruction(migraphx::operation("neg"), {transposed_custom});
     m.add_return({neg});
     migraphx::compile_options options;
     options.set_offload_copy(true);
@@ -54,9 +83,11 @@ TEST_CASE(run_simple_custom_op)
     std::vector<float> x_data(12, 1);
     std::vector<float> ret_data(12, -1);
     pp.add("x", migraphx::argument(s, x_data.data()));
-    auto result = p.eval(pp)[0];
-    std::vector<float> expected_result(12, 0);
-    std::fill(expected_result.begin() + 6, expected_result.end(), -1);
+    auto results = p.eval(pp);
+    auto result = results[0];
+    //auto result_transposed = results[1];
+    std::vector<float> expected_result = {0, 0, -1, -1, 0, 0, -1, -1, 0, 0, -1, -1};
+    //std::fill(expected_result.begin() + 6, expected_result.end(), -1);
     auto result_vec = result.as_vector<float>();
     EXPECT(migraphx::verify_range(result_vec, expected_result));
 }
