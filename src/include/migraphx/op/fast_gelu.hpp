@@ -20,7 +20,8 @@ struct fast_gelu : unary<fast_gelu>
 {
     auto apply() const
     {
-        return [](auto x) { return 0.5 * x * (1 + tanh(sqrt(M_2_PI) * (x + 0.044715 * x * x * x))); };
+        return
+            [](auto x) { return 0.5 * x * (1 + tanh(sqrt(M_2_PI) * (x + 0.044715 * x * x * x))); };
     }
 
     /* auto apply() const

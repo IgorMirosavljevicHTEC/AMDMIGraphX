@@ -18,7 +18,7 @@ struct parse_fastgelu : op_parser<parse_fastgelu>
                           const onnx_parser::node_info& info,
                           std::vector<instruction_ref> args) const
     {
-        if (args.size() == 2)
+        if(args.size() == 2)
             return info.add_instruction(migraphx::make_op("bias_fast_gelu"), args[0], args[1]);
         else
             return info.add_instruction(migraphx::make_op("fast_gelu"), args[0]);

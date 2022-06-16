@@ -62,10 +62,10 @@ struct bias_fast_gelu_compiler : compiler<bias_fast_gelu_compiler>
     operation compile_op(context& ctx, const std::vector<shape>& inputs, const value& v) const
     {
         hip_compile_options options;
-        if (inputs.front().type() == migraphx::shape::half_type)
+        if(inputs.front().type() == migraphx::shape::half_type)
         {
             options.set_launch_params(
-            v, compute_global_for(ctx, inputs.back().elements() / 2, 1024), 1024);
+                v, compute_global_for(ctx, inputs.back().elements() / 2, 1024), 1024);
             options.output      = inputs.back();
             options.inputs      = inputs;
             options.kernel_name = "bias_fast_gelu_half2_kernel";
@@ -73,8 +73,7 @@ struct bias_fast_gelu_compiler : compiler<bias_fast_gelu_compiler>
             options.params += " -DBIAS_DIM=" + std::to_string(inputs.at(1).elements() / 2);
             return compile_hip_code_object(bias_fast_gelu_half2_kernel, options);
         }
-        options.set_launch_params(
-            v, compute_global_for(ctx, inputs.back().elements(), 1024), 1024);
+        options.set_launch_params(v, compute_global_for(ctx, inputs.back().elements(), 1024), 1024);
         options.output      = inputs.back();
         options.inputs      = inputs;
         options.kernel_name = "bias_fast_gelu_kernel";

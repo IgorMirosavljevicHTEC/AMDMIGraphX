@@ -15,7 +15,8 @@ struct bias_fast_gelu : binary<bias_fast_gelu>
 {
     auto apply() const
     {
-        return [](auto x, auto y) { x += y; return 0.5 * x * (1 + tanh(sqrt(M_2_PI) * (x + 0.044715 * x * x * x))); };
+        return [](auto x, auto y) { x += y; return 0.5 * x * (1 + tanh(sqrt(M_2_PI) * (x + 0.044715
+* x * x * x))); };
     }
 
     auto apply() const
@@ -51,16 +52,13 @@ namespace migraphx {
 inline namespace MIGRAPHX_INLINE_NS {
 namespace op {
 
-# define M_SQRT_2_PI 0.79788456080286535588 /* sqrt(2/pi) */
+#define M_SQRT_2_PI 0.79788456080286535588 /* sqrt(2/pi) */
 
 struct bias_fast_gelu
 {
     std::string name() const { return "bias_fast_gelu"; }
 
-    shape compute_shape(std::vector<shape> inputs) const
-    {
-        return inputs.front();
-    }
+    shape compute_shape(std::vector<shape> inputs) const { return inputs.front(); }
 
     argument compute(const shape& output_shape, std::vector<argument> args) const
     {
@@ -69,7 +67,7 @@ struct bias_fast_gelu
         visit_all(result, args[0], args[1])([&](auto output, auto input, auto bias) {
             par_for(output_shape.elements(), [&](auto i) {
                 auto x = input[i] + bias[i % bias_dim];
-                //output[i] = (0.5 * x * (1 + tanh(M_SQRT_2_PI * (x + 0.044715 * x * x * x))));
+                // output[i] = (0.5 * x * (1 + tanh(M_SQRT_2_PI * (x + 0.044715 * x * x * x))));
                 output[i] = x * 0.5 * (1 + erf(x * M_SQRT1_2));
             });
         });

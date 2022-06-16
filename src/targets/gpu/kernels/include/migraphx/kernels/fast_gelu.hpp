@@ -9,7 +9,6 @@ namespace migraphx {
 template <class Input, class Output>
 __device__ void fast_gelu(Input input, Output output)
 {
-    
 }
 
 } // namespace migraphx

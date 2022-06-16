@@ -1701,11 +1701,7 @@ def gelu_test():
     b = helper.make_tensor_value_info('b', TensorProto.FLOAT16, [3072])
     y = helper.make_tensor_value_info('y', TensorProto.FLOAT16, [1, 384, 3072])
 
-    node = onnx.helper.make_node(
-        'Gelu',
-        inputs=['x', 'b'],
-        outputs=['y']
-    )
+    node = onnx.helper.make_node('Gelu', inputs=['x', 'b'], outputs=['y'])
 
     return ([node], [x, b], [y])
 
@@ -1716,11 +1712,7 @@ def biasfastgelu_test():
     b = helper.make_tensor_value_info('b', TensorProto.FLOAT16, [3072])
     y = helper.make_tensor_value_info('y', TensorProto.FLOAT16, [1, 384, 3072])
 
-    node = onnx.helper.make_node(
-        'FastGelu',
-        inputs=['x', 'b'],
-        outputs=['y']
-    )
+    node = onnx.helper.make_node('FastGelu', inputs=['x', 'b'], outputs=['y'])
 
     return ([node], [x, b], [y])
 

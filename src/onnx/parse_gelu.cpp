@@ -19,19 +19,19 @@ struct parse_gelu : op_parser<parse_gelu>
                           std::vector<instruction_ref> args) const
     {
         auto input = args.front();
-        if (args.size() == 2)
+        if(args.size() == 2)
         {
             auto bias = args[1];
-            input = info.add_broadcastable_binary_op("add", input, bias);
+            input     = info.add_broadcastable_binary_op("add", input, bias);
         }
 
         auto sqrt2 = info.add_literal(literal{shape{input->get_shape().type(), {1}}, {1.4140625}});
-        auto div = info.add_broadcastable_binary_op("div", input, sqrt2);
-        auto erf = info.add_instruction(make_op("erf"), div);
-        auto l1  = info.add_literal(literal{shape{input->get_shape().type(), {1}}, {1.0}});
-        auto add = info.add_broadcastable_binary_op("add", erf, l1);
-        input = info.add_broadcastable_binary_op("mul", input, add);
-        auto l2  = info.add_literal(literal{shape{input->get_shape().type(), {1}}, {0.5}});
+        auto div   = info.add_broadcastable_binary_op("div", input, sqrt2);
+        auto erf   = info.add_instruction(make_op("erf"), div);
+        auto l1    = info.add_literal(literal{shape{input->get_shape().type(), {1}}, {1.0}});
+        auto add   = info.add_broadcastable_binary_op("add", erf, l1);
+        input      = info.add_broadcastable_binary_op("mul", input, add);
+        auto l2    = info.add_literal(literal{shape{input->get_shape().type(), {1}}, {0.5}});
         return info.add_broadcastable_binary_op("mul", input, l2);
     }
 };
