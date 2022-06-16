@@ -75,8 +75,9 @@ TEST_CASE(run_simple_custom_op)
     auto custom_kernel = m.add_instruction(migraphx::operation("simple_custom_op"), {relu});
     auto transposed_custom =
         m.add_instruction(migraphx::operation("transpose_custom_op"), {custom_kernel});
-    auto neg = m.add_instruction(migraphx::operation("neg"), {transposed_custom});
-    m.add_return({neg});
+    auto neg_simple_op = m.add_instruction(migraphx::operation("neg"), {custom_kernel});
+    auto neg_transposed = m.add_instruction(migraphx::operation("neg"), {transposed_custom});
+    m.add_return({neg_simple_op, neg_transposed});
     migraphx::compile_options options;
     options.set_offload_copy(true);
     p.compile(migraphx::target("gpu"), options);
@@ -85,9 +86,10 @@ TEST_CASE(run_simple_custom_op)
     std::vector<float> ret_data(12, -1);
     pp.add("x", migraphx::argument(s, x_data.data()));
     auto results                       = p.eval(pp);
-    auto result                        = results[0];
+    auto result_simple                        = results[0];
+    auto result_transposed = results[1];
     std::vector<float> expected_result = {0, 0, -1, -1, 0, 0, -1, -1, 0, 0, -1, -1};
-    auto result_vec                    = result.as_vector<float>();
+    auto result_vec                    = result_transposed.as_vector<float>();
     EXPECT(migraphx::verify_range(result_vec, expected_result));
 }
 
