@@ -1,5 +1,6 @@
 #include <hip/hip_runtime_api.h>
 #include <migraphx/migraphx.h>
+#include <migraphx/verify.hpp>
 #include <migraphx/migraphx.hpp>
 #include "test.hpp"
 
@@ -27,8 +28,7 @@ struct simple_custom_op final : migraphx::experimental_custom_op_base
 
     virtual migraphx::shape compute_shape(migraphx::shapes inputs) const override
     {
-        // CHECK(inputs.size() == 2);
-        // CHECK(bool{inputs[0] == inputs[1]});
+        CHECK(inputs.size() == 1);
         return inputs.back();
     }
 
@@ -44,8 +44,7 @@ TEST_CASE(run_simple_custom_op)
     migraphx::module m = p.get_main_module();
     auto x             = m.add_parameter("x", s);
     auto relu          = m.add_instruction(migraphx::operation("relu"), {x});
-    auto alloc         = m.add_allocation(s);
-    auto custom_kernel = m.add_instruction(migraphx::operation("custom_simple_custom_op"), {relu});
+    auto custom_kernel = m.add_instruction(migraphx::operation("simple_custom_op"), {relu});
     auto neg           = m.add_instruction(migraphx::operation("neg"), {custom_kernel});
     m.add_return({neg});
     migraphx::compile_options options;
@@ -55,19 +54,11 @@ TEST_CASE(run_simple_custom_op)
     std::vector<float> x_data(12, 1);
     std::vector<float> ret_data(12, -1);
     pp.add("x", migraphx::argument(s, x_data.data()));
-    pp.add("main:#output_0", migraphx::argument(s, ret_data.data()));
-    auto results = p.eval(pp);
-    auto result  = results[0];
+    auto result = p.eval(pp)[0];
     std::vector<float> expected_result(12, 0);
-    std::cout << "after run" << std::endl;
     std::fill(expected_result.begin() + 6, expected_result.end(), -1);
     auto result_vec = result.as_vector<float>();
-    for(const auto& i : result_vec)
-    {
-        std::cout << i << " ";
-    }
-    std::cout << std::endl;
-    EXPECT(bool{result_vec == expected_result});
+    EXPECT(migraphx::verify_range(result_vec, expected_result));
 }
 
 int main(int argc, const char* argv[]) { test::run(argc, argv); }

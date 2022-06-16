@@ -235,7 +235,7 @@ struct custom_operation
         return pack();
     }
     CustomOp op;
-    std::string name() const { return "custom_" + op.xobject.name; }
+    std::string name() const { return op.xobject.name; }
 
     shape compute_shape(std::vector<shape> inputs) const
     {
