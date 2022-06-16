@@ -47,8 +47,8 @@ struct transpose_custom_op final : migraphx::experimental_custom_op_base
     virtual migraphx::shape compute_shape(migraphx::shapes inputs) const override
     {
         CHECK(inputs.size() == 1);
-        migraphx::shape input_s = inputs[0];
-        std::vector<size_t> dims = input_s.lengths(); 
+        migraphx::shape input_s     = inputs[0];
+        std::vector<size_t> dims    = input_s.lengths();
         std::vector<size_t> strides = input_s.strides();
         std::reverse(dims.begin(), dims.end());
         std::reverse(strides.begin(), strides.end());
@@ -57,7 +57,7 @@ struct transpose_custom_op final : migraphx::experimental_custom_op_base
     }
 
     virtual bool runs_on_offload_target() const override { return false; }
-    virtual std::ptrdiff_t output_alias(migraphx::shapes) const override { return 0;};
+    virtual std::ptrdiff_t output_alias(migraphx::shapes) const override { return 0; };
 };
 
 TEST_CASE(run_simple_custom_op)
@@ -73,7 +73,8 @@ TEST_CASE(run_simple_custom_op)
     auto x             = m.add_parameter("x", s);
     auto relu          = m.add_instruction(migraphx::operation("relu"), {x});
     auto custom_kernel = m.add_instruction(migraphx::operation("simple_custom_op"), {relu});
-    auto transposed_custom = m.add_instruction(migraphx::operation("transpose_custom_op"), {custom_kernel});
+    auto transposed_custom =
+        m.add_instruction(migraphx::operation("transpose_custom_op"), {custom_kernel});
     auto neg = m.add_instruction(migraphx::operation("neg"), {transposed_custom});
     m.add_return({neg});
     migraphx::compile_options options;
@@ -84,10 +85,8 @@ TEST_CASE(run_simple_custom_op)
     std::vector<float> ret_data(12, -1);
     pp.add("x", migraphx::argument(s, x_data.data()));
     auto results = p.eval(pp);
-    auto result = results[0];
-    //auto result_transposed = results[1];
+    auto result  = results[0];
     std::vector<float> expected_result = {0, 0, -1, -1, 0, 0, -1, -1, 0, 0, -1, -1};
-    //std::fill(expected_result.begin() + 6, expected_result.end(), -1);
     auto result_vec = result.as_vector<float>();
     EXPECT(migraphx::verify_range(result_vec, expected_result));
 }
