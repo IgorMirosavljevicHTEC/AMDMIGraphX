@@ -13,6 +13,7 @@
 #include <migraphx/op/atan.hpp>
 #include <migraphx/op/atanh.hpp>
 #include <migraphx/op/batch_norm_inference.hpp>
+#include <migraphx/op/bias_fast_gelu.hpp>
 #include <migraphx/op/binary.hpp>
 #include <migraphx/op/broadcast.hpp>
 #include <migraphx/op/capture.hpp>
@@ -32,6 +33,7 @@
 #include <migraphx/op/equal.hpp>
 #include <migraphx/op/erf.hpp>
 #include <migraphx/op/exp.hpp>
+#include <migraphx/op/fast_gelu.hpp>
 #include <migraphx/op/flatten.hpp>
 #include <migraphx/op/floor.hpp>
 #include <migraphx/op/gather.hpp>

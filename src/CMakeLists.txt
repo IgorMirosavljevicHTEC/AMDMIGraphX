@@ -88,6 +88,7 @@ register_migraphx_ops(
     atanh
     atan
     batch_norm_inference
+    bias_fast_gelu
     broadcast
     capture
     ceil
@@ -106,6 +107,7 @@ register_migraphx_ops(
     equal
     erf
     exp
+    fast_gelu
     flatten
     floor
     gather
