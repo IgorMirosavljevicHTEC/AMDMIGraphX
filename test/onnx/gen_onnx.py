@@ -1717,6 +1717,28 @@ def gathernd_batch_dims_test():
 
 
 @onnx_test
+def gelu_test():
+    x = helper.make_tensor_value_info('x', TensorProto.FLOAT16, [1, 384, 3072])
+    b = helper.make_tensor_value_info('b', TensorProto.FLOAT16, [3072])
+    y = helper.make_tensor_value_info('y', TensorProto.FLOAT16, [1, 384, 3072])
+
+    node = onnx.helper.make_node('Gelu', inputs=['x', 'b'], outputs=['y'])
+
+    return ([node], [x, b], [y])
+
+
+@onnx_test
+def biasfastgelu_test():
+    x = helper.make_tensor_value_info('x', TensorProto.FLOAT16, [1, 384, 3072])
+    b = helper.make_tensor_value_info('b', TensorProto.FLOAT16, [3072])
+    y = helper.make_tensor_value_info('y', TensorProto.FLOAT16, [1, 384, 3072])
+
+    node = onnx.helper.make_node('FastGelu', inputs=['x', 'b'], outputs=['y'])
+
+    return ([node], [x, b], [y])
+
+
+@onnx_test
 def gemm_test():
     x = helper.make_tensor_value_info('0', TensorProto.FLOAT, [5, 7])
     y = helper.make_tensor_value_info('1', TensorProto.FLOAT, [11, 5])
