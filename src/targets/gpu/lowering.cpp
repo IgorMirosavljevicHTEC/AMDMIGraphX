@@ -235,7 +235,7 @@ struct miopen_apply
             {
                 check_shape(s, insert_precompile_op(it));
             }
-            else if(it->get_operator().has_offload_copy()) // custom op 
+            else if(it->get_operator().has_offload_copy()) // custom op
             {
                 check_shape(s, insert_custom_op(it));
             }
