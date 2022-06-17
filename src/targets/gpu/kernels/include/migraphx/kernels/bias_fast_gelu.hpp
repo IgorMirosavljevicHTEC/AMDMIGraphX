@@ -14,7 +14,7 @@ namespace migraphx {
 constexpr float A   = 0.5;
 constexpr float B   = 0.7978845608028654;   // sqrt(2.0/M_PI)
 constexpr float C   = 0.035677408136300125; // 0.044715 * sqrt(2.0/M_PI)
-constexpr float D   = 1.702; // used for sigmoid approximation
+constexpr float D   = 1.702;                // used for sigmoid approximation
 constexpr float one = 1.0;
 constexpr float two = 2.0;
 
@@ -93,23 +93,20 @@ __device__ void bias_fast_gelu_half2(void* input, void* bias, void* output, Sett
         cdf        = __hadd2(cdf, A2);
         houtput[i] = __hmul2(sum, cdf); */
 
-
         // Sigmoid approximation
         // Batch size: 1
         // Rate: 17930/sec
         // Batch size: 64
         // Rate: 93899.1/sec
         const half2 one2 = __float2half2_rn(one);
-        const half2 D2 = __float2half2_rn(D);
+        const half2 D2   = __float2half2_rn(D);
 
         auto inner = __hmul2(D2, sum);
-        inner = __hneg2(inner);
-        auto sig = h2exp(inner);
-        sig = __hadd2(one2, sig);
-        sig = __h2div(one2, sig);
+        inner      = __hneg2(inner);
+        auto sig   = h2exp(inner);
+        sig        = __hadd2(one2, sig);
+        sig        = __h2div(one2, sig);
         houtput[i] = __hmul2(sig, sum);
-
-
 
         /* // erf forumaltion
         // Batch size: 1
