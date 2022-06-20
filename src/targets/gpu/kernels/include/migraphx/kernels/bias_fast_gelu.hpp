@@ -35,8 +35,8 @@ template <class Settings>
 __device__ void bias_fast_gelu_half4(void* input, void* bias, void* output, Settings s)
 {
     const float2* input_cast = reinterpret_cast<const float2*>(input);
-    const float2* bias_cast = reinterpret_cast<const float2*>(bias);
-    float2* output_cast = reinterpret_cast<float2*>(output);
+    const float2* bias_cast  = reinterpret_cast<const float2*>(bias);
+    float2* output_cast      = reinterpret_cast<float2*>(output);
 
     auto index    = make_index();
     auto i        = index.global;
@@ -45,12 +45,12 @@ __device__ void bias_fast_gelu_half4(void* input, void* bias, void* output, Sett
 
     if(i < elements)
     {
-        float2 vals_vec = input_cast[i];
-        float2 bias_vec = bias_cast[i % bias_dim];
+        float2 vals_vec   = input_cast[i];
+        float2 bias_vec   = bias_cast[i % bias_dim];
         float2 output_vec = output_cast[i];
 
-        half2* vals_half = reinterpret_cast<half2*>(&vals_vec);
-        half2* bias_half = reinterpret_cast<half2*>(&bias_vec);
+        half2* vals_half   = reinterpret_cast<half2*>(&vals_vec);
+        half2* bias_half   = reinterpret_cast<half2*>(&bias_vec);
         half2* output_half = reinterpret_cast<half2*>(&output_vec);
 
         half2 lo_data = vals_half[0];
@@ -99,7 +99,6 @@ __device__ void bias_fast_gelu_half4(void* input, void* bias, void* output, Sett
         output_half[0] = __hmul2(lo_sum, lo_cdf);
         output_half[1] = __hmul2(hi_sum, hi_cdf);
         output_cast[i] = output_vec; */
-        
 
         // sigmoid approximation
         // Batch size: 1
