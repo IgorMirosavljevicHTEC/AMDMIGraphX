@@ -3,6 +3,9 @@
 #include <migraphx/gpu/compile_hip_code_object.hpp>
 #include <migraphx/gpu/compile_hip.hpp>
 
+#include <hip/hip_runtime.h>
+#include <hip/hip_fp16.h>
+
 #include <migraphx/cpp_generator.hpp>
 #include <migraphx/ranges.hpp>
 #include <migraphx/reduce_dims.hpp>
@@ -44,7 +47,10 @@ extern "C" {
 __global__ void bias_fast_gelu_half2_kernel(void* input_p, void* bias_p, void* output_p) 
 {
     auto settings = make_biasfastgelu_settings(MIGRAPHX_MAKE_CONSTANT(size_t{ELEMENTS}), MIGRAPHX_MAKE_CONSTANT(size_t{BIAS_DIM}));
-    bias_fast_gelu_half2(input_p, bias_p, output_p, settings);
+    /* __half2* hinput  = reinterpret_cast<__half2*>(input_p);
+    __half2* hbias   = reinterpret_cast<__half2*>(bias_p);
+    __half2* houtput = reinterpret_cast<__half2*>(output_p); */
+    bias_fast_gelu_half4(input_p, bias_p, output_p, settings);
     /* make_tensors()(input_p, bias_p, output_p)([](auto input, auto bias, auto output) {
         auto settings = make_biasfastgelu_settings(MIGRAPHX_MAKE_CONSTANT(size_t{ELEMENTS}));
         bias_fast_gelu_half2(&input, &bias, &output, settings);
@@ -62,18 +68,19 @@ struct bias_fast_gelu_compiler : compiler<bias_fast_gelu_compiler>
     operation compile_op(context& ctx, const std::vector<shape>& inputs, const value& v) const
     {
         hip_compile_options options;
+        std::size_t local = 1024;
         if(inputs.front().type() == migraphx::shape::half_type)
         {
             options.set_launch_params(
-                v, compute_global_for(ctx, inputs.back().elements() / 2, 1024), 1024);
+                v, compute_global_for(ctx, inputs.back().elements() / 4, 256), local);
             options.output      = inputs.back();
             options.inputs      = inputs;
             options.kernel_name = "bias_fast_gelu_half2_kernel";
-            options.params += " -DELEMENTS=" + std::to_string(inputs.back().elements() / 2);
-            options.params += " -DBIAS_DIM=" + std::to_string(inputs.at(1).elements() / 2);
+            options.params += " -DELEMENTS=" + std::to_string(inputs.back().elements() / 4);
+            options.params += " -DBIAS_DIM=" + std::to_string(inputs.at(1).elements() / 4);
             return compile_hip_code_object(bias_fast_gelu_half2_kernel, options);
         }
-        options.set_launch_params(v, compute_global_for(ctx, inputs.back().elements(), 1024), 1024);
+        options.set_launch_params(v, compute_global_for(ctx, inputs.back().elements(), local), local);
         options.output      = inputs.back();
         options.inputs      = inputs;
         options.kernel_name = "bias_fast_gelu_kernel";

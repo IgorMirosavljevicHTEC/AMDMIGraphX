@@ -32,6 +32,101 @@ constexpr biasfastgelu_settings<T1, T2> make_biasfastgelu_settings(T1 x, T2 y)
 }
 
 template <class Settings>
+__device__ void bias_fast_gelu_half4(void* input, void* bias, void* output, Settings s)
+{
+    const float2* input_cast = reinterpret_cast<const float2*>(input);
+    const float2* bias_cast = reinterpret_cast<const float2*>(bias);
+    float2* output_cast = reinterpret_cast<float2*>(output);
+
+    auto index    = make_index();
+    auto i        = index.global;
+    auto elements = s.elements;
+    auto bias_dim = s.bias_dim;
+
+    if(i < elements)
+    {
+        float2 vals_vec = input_cast[i];
+        float2 bias_vec = bias_cast[i % bias_dim];
+        float2 output_vec = output_cast[i];
+
+        half2* vals_half = reinterpret_cast<half2*>(&vals_vec);
+        half2* bias_half = reinterpret_cast<half2*>(&bias_vec);
+        half2* output_half = reinterpret_cast<half2*>(&output_vec);
+
+        half2 lo_data = vals_half[0];
+        half2 hi_data = vals_half[1];
+        half2 lo_bias = bias_half[0];
+        half2 hi_bias = bias_half[1];
+
+        auto lo_sum = __hadd2(lo_data, lo_bias);
+        auto hi_sum = __hadd2(hi_data, hi_bias);
+
+        /* // tanh approximation approximation
+        // Batch size: 1
+        // Rate: 19776.3/sec
+        // Batch size: 64
+        // Rate: 93272.5/sec
+        const half2 A2   = __float2half2_rn(A);
+        const half2 B2   = __float2half2_rn(B);
+        const half2 C2   = __float2half2_rn(C);
+        const half2 one2 = __float2half2_rn(one);
+        const half2 two2 = __float2half2_rn(two);
+
+        auto lo_u1    = __hmul2(C2, lo_sum);
+        auto hi_u1    = __hmul2(C2, hi_sum);
+        lo_u1         = __hmul2(lo_u1, lo_sum);
+        hi_u1         = __hmul2(hi_u1, hi_sum);
+        lo_u1         = __hadd2(lo_u1, B2);
+        hi_u1         = __hadd2(hi_u1, B2);
+        auto lo_u2    = __hmul2(two2, lo_sum);
+        auto hi_u2    = __hmul2(two2, hi_sum);
+        lo_u2         = __hmul2(lo_u2, lo_u1);
+        hi_u2         = __hmul2(hi_u2, hi_u1);
+        lo_u2         = __hneg2(lo_u2);
+        hi_u2         = __hneg2(hi_u2);
+        auto lo_emu   = h2exp(lo_u2);
+        auto hi_emu   = h2exp(hi_u2);
+        auto lo_cdf   = __hadd2(one2, lo_emu);
+        auto hi_cdf   = __hadd2(one2, hi_emu);
+        lo_cdf        = __h2div(two2, lo_cdf);
+        hi_cdf        = __h2div(two2, hi_cdf);
+        lo_cdf        = __hsub2(lo_cdf, one2);
+        hi_cdf        = __hsub2(hi_cdf, one2);
+        lo_cdf        = __hmul2(A2, lo_cdf);
+        hi_cdf        = __hmul2(A2, hi_cdf);
+        lo_cdf        = __hadd2(lo_cdf, A2);
+        hi_cdf        = __hadd2(hi_cdf, A2);
+        output_half[0] = __hmul2(lo_sum, lo_cdf);
+        output_half[1] = __hmul2(hi_sum, hi_cdf);
+        output_cast[i] = output_vec; */
+        
+
+        // sigmoid approximation
+        // Batch size: 1
+        // Rate: 20946.2/sec
+        // Batch size: 64
+        // Rate: 93239.3/sec
+        const half2 one2 = __float2half2_rn(one);
+        const half2 D2   = __float2half2_rn(D);
+
+        auto lo_inner = __hmul2(D2, lo_sum);
+        auto hi_inner = __hmul2(D2, hi_sum);
+        lo_inner      = __hneg2(lo_inner);
+        hi_inner      = __hneg2(hi_inner);
+        auto lo_sig   = h2exp(lo_inner);
+        auto hi_sig   = h2exp(hi_inner);
+        lo_sig        = __hadd2(one2, lo_sig);
+        hi_sig        = __hadd2(one2, hi_sig);
+        lo_sig        = __h2div(one2, lo_sig);
+        hi_sig        = __h2div(one2, hi_sig);
+
+        output_half[0] = __hmul2(lo_sum, lo_sig);
+        output_half[1] = __hmul2(hi_sum, hi_sig);
+        output_cast[i] = output_vec;
+    }
+}
+
+template <class Settings>
 __device__ void bias_fast_gelu_half2(void* input, void* bias, void* output, Settings s)
 {
     __half2* hinput  = reinterpret_cast<__half2*>(input);
