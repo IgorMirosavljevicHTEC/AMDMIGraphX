@@ -22,7 +22,7 @@ struct parse_fastgelu : op_parser<parse_fastgelu>
             return info.add_instruction(migraphx::make_op("bias_fast_gelu"), args);
         else
         {
-            if (args[0]->name() == "add")
+            if(args[0]->name() == "add")
             {
                 return info.add_instruction(migraphx::make_op("bias_fast_gelu"), args[0]->inputs());
             }
