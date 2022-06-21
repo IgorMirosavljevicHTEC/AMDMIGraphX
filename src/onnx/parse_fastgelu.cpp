@@ -19,9 +19,16 @@ struct parse_fastgelu : op_parser<parse_fastgelu>
                           std::vector<instruction_ref> args) const
     {
         if(args.size() == 2)
-            return info.add_instruction(migraphx::make_op("bias_fast_gelu"), args[0], args[1]);
+            return info.add_instruction(migraphx::make_op("bias_fast_gelu"), args);
         else
-            return info.add_instruction(migraphx::make_op("fast_gelu"), args[0]);
+        {
+            if (args[0]->name() == "add")
+            {
+                return info.add_instruction(migraphx::make_op("bias_fast_gelu"), args[0]->inputs());
+            }
+
+            return info.add_instruction(migraphx::make_op("fast_gelu"), args);
+        }
     }
 };
 
