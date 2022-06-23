@@ -77,6 +77,25 @@ __global__ void bias_fast_gelu_half4_kernel(void* input_p, void* bias_p, void* o
 } // namespace migraphx
 )__migraphx__";
 
+static const char* const bias_fast_gelu_half4_sig_kernel = R"__migraphx__(
+#include <migraphx/kernels/index.hpp>
+#include <migraphx/kernels/integral_constant.hpp>
+#include <migraphx/kernels/generic_constant.hpp>
+#include <migraphx/kernels/bias_fast_gelu.hpp>
+#include <args.hpp>
+namespace migraphx {
+extern "C" {
+
+__global__ void bias_fast_gelu_half4_sig_kernel(void* input_p, void* bias_p, void* output_p) 
+{
+    auto settings = make_biasfastgelu_settings(MIGRAPHX_MAKE_CONSTANT(size_t{ELEMENTS}), MIGRAPHX_MAKE_CONSTANT(size_t{BIAS_DIM}));
+    bias_fast_gelu_half4_sig(input_p, bias_p, output_p, settings);
+}
+    
+}
+} // namespace migraphx
+)__migraphx__";
+
 static const char* const bias_fast_gelu_half2_tanh_kernel = R"__migraphx__(
 #include <migraphx/kernels/index.hpp>
 #include <migraphx/kernels/integral_constant.hpp>
@@ -107,9 +126,12 @@ struct bias_fast_gelu_compiler : compiler<bias_fast_gelu_compiler>
         if(inputs.front().type() == migraphx::shape::half_type)
         {
             auto algo_num = value_of(FASTGELU_ALGO{});
-            auto vec_div  = algo_num == 1 ? 4 : 2;
+            auto vec_div  = algo_num == 1 or algo_num == 3 ? 4 : 2;
+            std::cout << "div: " << vec_div << std::endl;
+            std::size_t oversub = vec_div == 4 ? 256 : 512;
+            std::cout << "elements: " << inputs.back().elements() / vec_div << std::endl;
             options.set_launch_params(
-                v, compute_global_for(ctx, inputs.back().elements() / vec_div, 256), local);
+                v, compute_global_for(ctx, inputs.back().elements() / vec_div, oversub), local);
             options.output      = inputs.back();
             options.inputs      = inputs;
             auto algo           = bias_fast_gelu_half2_kernel;
@@ -123,8 +145,14 @@ struct bias_fast_gelu_compiler : compiler<bias_fast_gelu_compiler>
             else if(algo_num == 2)
             {
                 std::cout << "tanh" << std::endl;
-                options.kernel_name = "bias_fast_gelu_half4_kernel";
-                algo                = bias_fast_gelu_half4_kernel;
+                options.kernel_name = "bias_fast_gelu_half2_tanh_kernel";
+                algo                = bias_fast_gelu_half2_tanh_kernel;
+            }
+            else if (algo_num == 3)
+            {
+                std::cout << "sigmoid4" << std::endl;
+                options.kernel_name = "bias_fast_gelu_half4_sig_kernel";
+                algo                = bias_fast_gelu_half4_sig_kernel;
             }
             else
             {
