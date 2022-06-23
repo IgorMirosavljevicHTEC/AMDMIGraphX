@@ -20,7 +20,7 @@ namespace migraphx {
 inline namespace MIGRAPHX_INLINE_NS {
 namespace gpu {
 
-MIGRAPHX_DECLARE_ENV_VAR(FASTGELU_ALGO2)
+MIGRAPHX_DECLARE_ENV_VAR(FASTGELU_ALGO)
 
 static const char* const bias_fast_gelu_kernel = R"__migraphx__(
 #include <migraphx/kernels/index.hpp>
@@ -77,6 +77,25 @@ __global__ void bias_fast_gelu_half4_kernel(void* input_p, void* bias_p, void* o
 } // namespace migraphx
 )__migraphx__";
 
+static const char* const bias_fast_gelu_half2_tanh_kernel = R"__migraphx__(
+#include <migraphx/kernels/index.hpp>
+#include <migraphx/kernels/integral_constant.hpp>
+#include <migraphx/kernels/generic_constant.hpp>
+#include <migraphx/kernels/bias_fast_gelu.hpp>
+#include <args.hpp>
+namespace migraphx {
+extern "C" {
+
+__global__ void bias_fast_gelu_half2_tanh_kernel(void* input_p, void* bias_p, void* output_p) 
+{
+    auto settings = make_biasfastgelu_settings(MIGRAPHX_MAKE_CONSTANT(size_t{ELEMENTS}), MIGRAPHX_MAKE_CONSTANT(size_t{BIAS_DIM}));
+    bias_fast_gelu_half2_tanh(input_p, bias_p, output_p, settings);
+}
+    
+}
+} // namespace migraphx
+)__migraphx__";
+
 struct bias_fast_gelu_compiler : compiler<bias_fast_gelu_compiler>
 {
     std::vector<std::string> names() const { return {"bias_fast_gelu"}; }
@@ -91,26 +110,28 @@ struct bias_fast_gelu_compiler : compiler<bias_fast_gelu_compiler>
                 v, compute_global_for(ctx, inputs.back().elements() / 4, 256), local);
             options.output = inputs.back();
             options.inputs = inputs;
-            if(enabled(FASTGELU_ALGO2{}))
+            auto algo_num = value_of(FASTGELU_ALGO{});
+            auto algo = bias_fast_gelu_half2_kernel;
+            options.kernel_name = "bias_fast_gelu_half2_kernel";
+            if(algo_num == 1)
             {
-                std::cout << "algo2" << std::endl;
+                std::cout << "tanh4" << std::endl;
                 options.kernel_name = "bias_fast_gelu_half4_kernel";
+                algo = bias_fast_gelu_half4_kernel;
+            }
+            else if (algo_num == 2)
+            {
+                std::cout << "tanh" <<std::endl;
+                options.kernel_name = "bias_fast_gelu_half4_kernel";
+                algo = bias_fast_gelu_half4_kernel;
             }
             else
             {
-                std::cout << "algo1" << std::endl;
-                options.kernel_name = "bias_fast_gelu_half2_kernel";
+                std::cout << "sigmoid" <<std::endl;
             }
             options.params += " -DELEMENTS=" + std::to_string(inputs.back().elements() / 4);
             options.params += " -DBIAS_DIM=" + std::to_string(inputs.at(1).elements() / 4);
-            if(enabled(FASTGELU_ALGO2{}))
-            {
-                return compile_hip_code_object(bias_fast_gelu_half4_kernel, options);
-            }
-            else
-            {
-                return compile_hip_code_object(bias_fast_gelu_half2_kernel, options);
-            }
+            return compile_hip_code_object(algo, options);
         }
         options.set_launch_params(
             v, compute_global_for(ctx, inputs.back().elements(), local), local);

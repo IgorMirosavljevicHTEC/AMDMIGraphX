@@ -1728,6 +1728,28 @@ def gelu_test():
 
 
 @onnx_test
+def gelusig_test():
+    x = helper.make_tensor_value_info('x', TensorProto.FLOAT16, [1, 384, 3072])
+    b = helper.make_tensor_value_info('b', TensorProto.FLOAT16, [3072])
+    y = helper.make_tensor_value_info('y', TensorProto.FLOAT16, [1, 384, 3072])
+
+    node = onnx.helper.make_node('GeluSig', inputs=['x', 'b'], outputs=['y'])
+
+    return ([node], [x, b], [y])
+
+
+@onnx_test
+def gelutanh_test():
+    x = helper.make_tensor_value_info('x', TensorProto.FLOAT16, [1, 384, 3072])
+    b = helper.make_tensor_value_info('b', TensorProto.FLOAT16, [3072])
+    y = helper.make_tensor_value_info('y', TensorProto.FLOAT16, [1, 384, 3072])
+
+    node = onnx.helper.make_node('GeluTanh', inputs=['x', 'b'], outputs=['y'])
+
+    return ([node], [x, b], [y])
+
+
+@onnx_test
 def biasfastgelu_test():
     x = helper.make_tensor_value_info('x', TensorProto.FLOAT16, [1, 384, 3072])
     b = helper.make_tensor_value_info('b', TensorProto.FLOAT16, [3072])

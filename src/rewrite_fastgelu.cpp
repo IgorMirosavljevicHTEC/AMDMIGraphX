@@ -93,7 +93,7 @@ struct find_add_gelu_erf
 
     void apply(module& m, const match::matcher_result& r) const
     {
-        std::cout << "Match hit" << std::endl;
+        //std::cout << "Match hit" << std::endl;
         auto ins     = r.result;
         auto add_ins = r.instructions["add"];
         auto args    = add_ins->inputs();
@@ -107,7 +107,7 @@ void rewrite_fastgelu::apply(module& m) const
     // m.debug_print();
     match::find_matches(m, find_add_gelu_erf{});
     dead_code_elimination{}.apply(m);
-    std::cout << "End matcher" << std::endl;
+    //std::cout << "End matcher" << std::endl;
     /*  std::cout << "\n\nGraph at rewrite\n" << std::endl;
      m.debug_print();
      std::cout << "\n\nGraph at rewrite\n" << std::endl; */

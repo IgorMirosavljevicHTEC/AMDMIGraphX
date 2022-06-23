@@ -61,7 +61,7 @@ __device__ void bias_fast_gelu_half4(void* input, void* bias, void* output, Sett
         auto lo_sum = __hadd2(lo_data, lo_bias);
         auto hi_sum = __hadd2(hi_data, hi_bias);
 
-        /* // tanh approximation approximation
+        // tanh approximation approximation
         // Batch size: 1
         // Rate: 19776.3/sec
         // Batch size: 64
@@ -98,9 +98,9 @@ __device__ void bias_fast_gelu_half4(void* input, void* bias, void* output, Sett
         hi_cdf        = __hadd2(hi_cdf, A2);
         output_half[0] = __hmul2(lo_sum, lo_cdf);
         output_half[1] = __hmul2(hi_sum, hi_cdf);
-        output_cast[i] = output_vec; */
+        output_cast[i] = output_vec;
 
-        // sigmoid approximation
+        /* // sigmoid approximation
         // Batch size: 1
         // Rate: 20946.2/sec
         // Batch size: 64
@@ -121,7 +121,7 @@ __device__ void bias_fast_gelu_half4(void* input, void* bias, void* output, Sett
 
         output_half[0] = __hmul2(lo_sum, lo_sig);
         output_half[1] = __hmul2(hi_sum, hi_sig);
-        output_cast[i] = output_vec;
+        output_cast[i] = output_vec; */
     }
 }
 
@@ -201,6 +201,110 @@ __device__ void bias_fast_gelu_half2(void* input, void* bias, void* output, Sett
         sig        = __hadd2(one2, sig);
         sig        = __h2div(one2, sig);
         houtput[i] = __hmul2(sig, sum);
+
+        /* // erf forumaltion
+        // Batch size: 1
+        // Rate: 14084.4/sec
+        // Batch size: 64
+        // Rate: 92833.3/sec
+
+        __half2 sqrt2 = __float2half2_rn(M_SQRT1_2);
+        auto x        = __hmul2(sum, sqrt2);
+        auto f2       = __half22float2(x);
+        f2.x          = ::erff(f2.x);
+        f2.y          = ::erff(f2.y);
+        auto h2       = __floats2half2_rn(f2.x, f2.y);
+
+        auto one2 = __float2half2_rn(1.0f);
+        h2       = __hadd2(h2, one2);
+
+        __half2 point5 = __float2half2_rn(0.5f);
+        houtput[i]        = __hmul2(sum, __hmul2(point5, h2));  */
+
+        // Compare to gpu::code_object::add_mul_erf_add_mul_mul_kernel
+        // Batch size: 1
+        // Rate: 14083/sec
+        // Batch size: 64
+        // Rate: 57932.8/sec
+    }
+}
+
+template <class Settings>
+__device__ void bias_fast_gelu_half2_tanh(void* input, void* bias, void* output, Settings s)
+{
+    __half2* hinput  = reinterpret_cast<__half2*>(input);
+    __half2* hbias   = reinterpret_cast<__half2*>(bias);
+    __half2* houtput = reinterpret_cast<__half2*>(output);
+
+    auto index    = make_index();
+    auto i        = index.global;
+    auto elements = s.elements;
+    auto bias_dim = s.bias_dim;
+
+    if(i < elements)
+    {
+        auto sum = __hadd2(hinput[i], hbias[i % bias_dim]);
+
+        /* // tanh approximation
+        // Batch size: 1
+        // Rate: 14480.7/sec
+        // Batch size: 64
+        // Rate: 93224.8/sec
+        const half2 A2 = __float2half2_rn(A);
+        const half2 B2 = __float2half2_rn(B);
+        const half2 C2 = __float2half2_rn(C);
+
+        auto u1 = __hmul2(C2, sum);
+        u1 = __hmul2(u1, sum);
+        u1 = __hadd2(u1, B2);
+        u1 = __hmul2(sum, u1);
+        auto f2 = __half22float2(u1);
+        f2.x = ::tanh(f2.x);
+        f2.y = ::tanh(f2.y);
+        auto h2 = __floats2half2_rn(f2.x, f2.y);
+        auto cdf = __hmul2(h2, A2);
+        cdf = __hadd2(cdf, A2);
+        houtput[i] = __hmul2(sum, cdf); */
+
+        // ORT tanh approximation approximation; tanh(x) ~=  2/(1+exp(-2*x))-1
+        // Batch size: 1
+        // Rate: 15494.8/sec
+        // Batch size: 64
+        // Rate: 93833.3/sec
+        const half2 A2   = __float2half2_rn(A);
+        const half2 B2   = __float2half2_rn(B);
+        const half2 C2   = __float2half2_rn(C);
+        const half2 one2 = __float2half2_rn(one);
+        const half2 two2 = __float2half2_rn(two);
+
+        auto u1    = __hmul2(C2, sum);
+        u1         = __hmul2(u1, sum);
+        u1         = __hadd2(u1, B2);
+        auto u2    = __hmul2(two2, sum);
+        u2         = __hmul2(u2, u1);
+        u2         = __hneg2(u2);
+        auto emu   = h2exp(u2);
+        auto cdf   = __hadd2(one2, emu);
+        cdf        = __h2div(two2, cdf);
+        cdf        = __hsub2(cdf, one2);
+        cdf        = __hmul2(A2, cdf);
+        cdf        = __hadd2(cdf, A2);
+        houtput[i] = __hmul2(sum, cdf);
+
+        /* // Sigmoid approximation
+        // Batch size: 1
+        // Rate: 17930/sec
+        // Batch size: 64
+        // Rate: 93899.1/sec
+        const half2 one2 = __float2half2_rn(one);
+        const half2 D2   = __float2half2_rn(D);
+
+        auto inner = __hmul2(D2, sum);
+        inner      = __hneg2(inner);
+        auto sig   = h2exp(inner);
+        sig        = __hadd2(one2, sig);
+        sig        = __h2div(one2, sig);
+        houtput[i] = __hmul2(sig, sum); */
 
         /* // erf forumaltion
         // Batch size: 1
