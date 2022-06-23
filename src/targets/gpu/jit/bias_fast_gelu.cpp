@@ -106,11 +106,12 @@ struct bias_fast_gelu_compiler : compiler<bias_fast_gelu_compiler>
         std::size_t local = 1024;
         if(inputs.front().type() == migraphx::shape::half_type)
         {
+            auto algo_num       = value_of(FASTGELU_ALGO{});
+            auto vec_div = algo_num == 1 ? 4 : 2;
             options.set_launch_params(
-                v, compute_global_for(ctx, inputs.back().elements() / 4, 256), local);
+                v, compute_global_for(ctx, inputs.back().elements() / vec_div, 256), local);
             options.output      = inputs.back();
             options.inputs      = inputs;
-            auto algo_num       = value_of(FASTGELU_ALGO{});
             auto algo           = bias_fast_gelu_half2_kernel;
             options.kernel_name = "bias_fast_gelu_half2_kernel";
             if(algo_num == 1)
@@ -129,8 +130,8 @@ struct bias_fast_gelu_compiler : compiler<bias_fast_gelu_compiler>
             {
                 std::cout << "sigmoid" << std::endl;
             }
-            options.params += " -DELEMENTS=" + std::to_string(inputs.back().elements() / 4);
-            options.params += " -DBIAS_DIM=" + std::to_string(inputs.at(1).elements() / 4);
+            options.params += " -DELEMENTS=" + std::to_string(inputs.back().elements() / vec_div);
+            options.params += " -DBIAS_DIM=" + std::to_string(inputs.at(1).elements() / vec_div);
             return compile_hip_code_object(algo, options);
         }
         options.set_launch_params(
