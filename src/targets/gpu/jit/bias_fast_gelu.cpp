@@ -127,9 +127,9 @@ struct bias_fast_gelu_compiler : compiler<bias_fast_gelu_compiler>
         {
             auto algo_num = value_of(FASTGELU_ALGO{});
             auto vec_div  = algo_num == 1 or algo_num == 3 ? 4 : 2;
-            std::cout << "div: " << vec_div << std::endl;
+            //std::cout << "div: " << vec_div << std::endl;
             std::size_t oversub = vec_div == 4 ? 256 : 512;
-            std::cout << "elements: " << inputs.back().elements() / vec_div << std::endl;
+            //std::cout << "elements: " << inputs.back().elements() / vec_div << std::endl;
             options.set_launch_params(
                 v, compute_global_for(ctx, inputs.back().elements() / vec_div, oversub), local);
             options.output      = inputs.back();
@@ -138,25 +138,25 @@ struct bias_fast_gelu_compiler : compiler<bias_fast_gelu_compiler>
             options.kernel_name = "bias_fast_gelu_half2_kernel";
             if(algo_num == 1)
             {
-                std::cout << "tanh4" << std::endl;
+                //std::cout << "tanh4" << std::endl;
                 options.kernel_name = "bias_fast_gelu_half4_kernel";
                 algo                = bias_fast_gelu_half4_kernel;
             }
             else if(algo_num == 2)
             {
-                std::cout << "tanh" << std::endl;
+                //std::cout << "tanh" << std::endl;
                 options.kernel_name = "bias_fast_gelu_half2_tanh_kernel";
                 algo                = bias_fast_gelu_half2_tanh_kernel;
             }
             else if(algo_num == 3)
             {
-                std::cout << "sigmoid4" << std::endl;
+                //std::cout << "sigmoid4" << std::endl;
                 options.kernel_name = "bias_fast_gelu_half4_sig_kernel";
                 algo                = bias_fast_gelu_half4_sig_kernel;
             }
             else
             {
-                std::cout << "sigmoid" << std::endl;
+                //std::cout << "sigmoid" << std::endl;
             }
             options.params += " -DELEMENTS=" + std::to_string(inputs.back().elements() / vec_div);
             options.params += " -DBIAS_DIM=" + std::to_string(inputs.at(1).elements() / vec_div);
