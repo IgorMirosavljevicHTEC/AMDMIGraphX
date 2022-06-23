@@ -148,7 +148,7 @@ struct bias_fast_gelu_compiler : compiler<bias_fast_gelu_compiler>
                 options.kernel_name = "bias_fast_gelu_half2_tanh_kernel";
                 algo                = bias_fast_gelu_half2_tanh_kernel;
             }
-            else if (algo_num == 3)
+            else if(algo_num == 3)
             {
                 std::cout << "sigmoid4" << std::endl;
                 options.kernel_name = "bias_fast_gelu_half4_sig_kernel";
