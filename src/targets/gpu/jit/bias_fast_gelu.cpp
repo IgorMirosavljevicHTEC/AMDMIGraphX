@@ -14,10 +14,13 @@
 #include <migraphx/eliminate_common_subexpression.hpp>
 #include <migraphx/module.hpp>
 #include <migraphx/pass_manager.hpp>
+#include <migraphx/env.hpp>
 
 namespace migraphx {
 inline namespace MIGRAPHX_INLINE_NS {
 namespace gpu {
+
+MIGRAPHX_DECLARE_ENV_VAR(FASTGELU_ALGO2)
 
 static const char* const bias_fast_gelu_kernel = R"__migraphx__(
 #include <migraphx/kernels/index.hpp>
@@ -44,17 +47,30 @@ static const char* const bias_fast_gelu_half2_kernel = R"__migraphx__(
 #include <args.hpp>
 namespace migraphx {
 extern "C" {
+
 __global__ void bias_fast_gelu_half2_kernel(void* input_p, void* bias_p, void* output_p) 
 {
     auto settings = make_biasfastgelu_settings(MIGRAPHX_MAKE_CONSTANT(size_t{ELEMENTS}), MIGRAPHX_MAKE_CONSTANT(size_t{BIAS_DIM}));
-    /* __half2* hinput  = reinterpret_cast<__half2*>(input_p);
-    __half2* hbias   = reinterpret_cast<__half2*>(bias_p);
-    __half2* houtput = reinterpret_cast<__half2*>(output_p); */
+    bias_fast_gelu_half2(input_p, bias_p, output_p, settings);
+}
+    
+}
+} // namespace migraphx
+)__migraphx__";
+
+static const char* const bias_fast_gelu_half4_kernel = R"__migraphx__(
+#include <migraphx/kernels/index.hpp>
+#include <migraphx/kernels/integral_constant.hpp>
+#include <migraphx/kernels/generic_constant.hpp>
+#include <migraphx/kernels/bias_fast_gelu.hpp>
+#include <args.hpp>
+namespace migraphx {
+extern "C" {
+
+__global__ void bias_fast_gelu_half4_kernel(void* input_p, void* bias_p, void* output_p) 
+{
+    auto settings = make_biasfastgelu_settings(MIGRAPHX_MAKE_CONSTANT(size_t{ELEMENTS}), MIGRAPHX_MAKE_CONSTANT(size_t{BIAS_DIM}));
     bias_fast_gelu_half4(input_p, bias_p, output_p, settings);
-    /* make_tensors()(input_p, bias_p, output_p)([](auto input, auto bias, auto output) {
-        auto settings = make_biasfastgelu_settings(MIGRAPHX_MAKE_CONSTANT(size_t{ELEMENTS}));
-        bias_fast_gelu_half2(&input, &bias, &output, settings);
-    }); */
 }
     
 }
@@ -75,10 +91,26 @@ struct bias_fast_gelu_compiler : compiler<bias_fast_gelu_compiler>
                 v, compute_global_for(ctx, inputs.back().elements() / 4, 256), local);
             options.output      = inputs.back();
             options.inputs      = inputs;
-            options.kernel_name = "bias_fast_gelu_half2_kernel";
+            if (enabled(FASTGELU_ALGO2{}))
+            {
+                std::cout << "algo2" <<std::endl;
+                options.kernel_name = "bias_fast_gelu_half4_kernel";
+            }
+            else
+            {
+                std::cout << "algo1" <<std::endl;
+                options.kernel_name = "bias_fast_gelu_half2_kernel";
+            }
             options.params += " -DELEMENTS=" + std::to_string(inputs.back().elements() / 4);
             options.params += " -DBIAS_DIM=" + std::to_string(inputs.at(1).elements() / 4);
-            return compile_hip_code_object(bias_fast_gelu_half2_kernel, options);
+            if (enabled(FASTGELU_ALGO2{}))
+            {
+                return compile_hip_code_object(bias_fast_gelu_half4_kernel, options);
+            }
+            else
+            {
+                return compile_hip_code_object(bias_fast_gelu_half2_kernel, options);
+            }
         }
         options.set_launch_params(
             v, compute_global_for(ctx, inputs.back().elements(), local), local);

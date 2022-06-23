@@ -18,6 +18,7 @@
 #include <migraphx/propagate_constant.hpp>
 #include <migraphx/register_target.hpp>
 #include <migraphx/rewrite_batchnorm.hpp>
+#include <migraphx/rewrite_fastgelu.hpp>
 #include <migraphx/rewrite_pooling.hpp>
 #include <migraphx/rewrite_quantization.hpp>
 #include <migraphx/rewrite_rnn.hpp>
@@ -102,6 +103,8 @@ std::vector<pass> target::get_passes(migraphx::context& gctx, const compile_opti
         auto_contiguous{},
         simplify_reshapes{},
         propagate_constant{},
+        dead_code_elimination{},
+        rewrite_fastgelu{},
         dead_code_elimination{},
         enable_pass(not enabled(MIGRAPHX_DISABLE_POINTWISE_FUSION{}), fuse_pointwise{}),
         dead_code_elimination{},
