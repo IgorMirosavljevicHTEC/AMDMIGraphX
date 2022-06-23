@@ -25,8 +25,8 @@ struct parse_fastgelu : op_parser<parse_fastgelu>
             if(args[0]->name() == "add")
             {
                 auto new_args = args[0]->inputs();
-                //std::reverse(new_args.begin(), new_args.end());
-                auto temp = new_args[0];
+                // std::reverse(new_args.begin(), new_args.end());
+                auto temp   = new_args[0];
                 new_args[0] = new_args[1];
                 new_args[1] = temp->inputs().front();
                 return info.add_instruction(migraphx::make_op("bias_fast_gelu"), new_args);

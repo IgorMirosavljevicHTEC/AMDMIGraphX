@@ -89,21 +89,21 @@ struct bias_fast_gelu_compiler : compiler<bias_fast_gelu_compiler>
         {
             options.set_launch_params(
                 v, compute_global_for(ctx, inputs.back().elements() / 4, 256), local);
-            options.output      = inputs.back();
-            options.inputs      = inputs;
-            if (enabled(FASTGELU_ALGO2{}))
+            options.output = inputs.back();
+            options.inputs = inputs;
+            if(enabled(FASTGELU_ALGO2{}))
             {
-                std::cout << "algo2" <<std::endl;
+                std::cout << "algo2" << std::endl;
                 options.kernel_name = "bias_fast_gelu_half4_kernel";
             }
             else
             {
-                std::cout << "algo1" <<std::endl;
+                std::cout << "algo1" << std::endl;
                 options.kernel_name = "bias_fast_gelu_half2_kernel";
             }
             options.params += " -DELEMENTS=" + std::to_string(inputs.back().elements() / 4);
             options.params += " -DBIAS_DIM=" + std::to_string(inputs.at(1).elements() / 4);
-            if (enabled(FASTGELU_ALGO2{}))
+            if(enabled(FASTGELU_ALGO2{}))
             {
                 return compile_hip_code_object(bias_fast_gelu_half4_kernel, options);
             }

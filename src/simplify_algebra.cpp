@@ -884,55 +884,49 @@ struct find_add_gelu_erf
 
     static auto match_div()
     {
-        return match::name("div")(
-                    match::arg(0)(match::name("add").bind("add")),
-                    match::arg(1)(match::skip_broadcasts(match::is_constant())));
+        return match::name("div")(match::arg(0)(match::name("add").bind("add")),
+                                  match::arg(1)(match::skip_broadcasts(match::is_constant())));
     }
 
-    static auto match_erf()
-    {
-        return match::name("erf")(match::arg(0)(match_div()));
-    }
+    static auto match_erf() { return match::name("erf")(match::arg(0)(match_div())); }
 
     static auto match_add2()
     {
-        return match::name("add")(
-                    match::arg(1)(match::skip_broadcasts(match::has_value(1.0f))),
-                    match::arg(0)(match_erf()));
+        return match::name("add")(match::arg(1)(match::skip_broadcasts(match::has_value(1.0f))),
+                                  match::arg(0)(match_erf()));
     }
 
     static auto match_add1()
     {
-        return match::name("add")(
-                    match::arg(1)(match::name("dot")),
-                    match::arg(0)(match::skip_broadcasts(match::name("@literal"))));
+        return match::name("add")(match::arg(1)(match::name("dot")),
+                                  match::arg(0)(match::skip_broadcasts(match::name("@literal"))));
     }
 
-    static auto match_mul2()
-    {
-        return match::name("mul")(match::args(match_add1(), match_add2()));
-    }
+    static auto match_mul2() { return match::name("mul")(match::args(match_add1(), match_add2())); }
 
     auto matcher() const
     {
-        return match::name("mul")(match::args(match_mul2(), match::skip_broadcasts(match::has_value(0.5f))));
+        return match::name("mul")(
+            match::args(match_mul2(), match::skip_broadcasts(match::has_value(0.5f))));
     }
 
     void apply(module& m, const match::matcher_result& r) const
     {
         std::cout << "Match hit" << std::endl;
-        auto ins   = r.result;
+        auto ins     = r.result;
         auto add_ins = r.instructions["add"];
-        auto args = add_ins->inputs();
+        auto args    = add_ins->inputs();
 
         auto add = m.insert_instruction(ins, make_op("add"), args);
         auto lit = m.add_literal(literal{shape{ins->get_shape().type()}, {1.702f}});
-        auto mul = m.insert_instruction(ins, make_op("multibroadcast", {{"out_lens", add->get_shape().lens()}}), lit);
-        mul = m.insert_instruction(ins, make_op("mul"), add, mul);
+        auto mul = m.insert_instruction(
+            ins, make_op("multibroadcast", {{"out_lens", add->get_shape().lens()}}), lit);
+        mul      = m.insert_instruction(ins, make_op("mul"), add, mul);
         auto sig = m.insert_instruction(ins, make_op("sigmoid"), mul);
-        sig = m.insert_instruction(ins, make_op("mul"), add, sig);
+        sig      = m.insert_instruction(ins, make_op("mul"), add, sig);
         m.replace_instruction(ins, sig);
-        //m.replace_instruction(ins, make_op("bias_fast_gelu"), args[1], args[0]->inputs().front());
+        // m.replace_instruction(ins, make_op("bias_fast_gelu"), args[1],
+        // args[0]->inputs().front());
     }
 };
 
@@ -1121,11 +1115,11 @@ struct find_split_transpose
 
 void simplify_algebra::apply(module& m) const
 {
-    //std::cout << "graph at simplify" << std::endl;
-    //m.debug_print();
+    // std::cout << "graph at simplify" << std::endl;
+    // m.debug_print();
     // Run simplifications multiple times
-    //match::find_matches(m, find_add_gelu_erf{});
-    //dead_code_elimination{}.apply(m);
+    // match::find_matches(m, find_add_gelu_erf{});
+    // dead_code_elimination{}.apply(m);
 
     for(int i = 0; i < 8; i++)
     {
@@ -1149,8 +1143,8 @@ void simplify_algebra::apply(module& m) const
                             find_split_transpose{});
         dead_code_elimination{}.apply(m);
     }
-    //std::cout << "graph after simplify" << std::endl;
-    //m.debug_print();
+    // std::cout << "graph after simplify" << std::endl;
+    // m.debug_print();
 }
 
 } // namespace MIGRAPHX_INLINE_NS
