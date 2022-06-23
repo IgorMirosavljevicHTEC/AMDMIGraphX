@@ -106,8 +106,8 @@ struct bias_fast_gelu_compiler : compiler<bias_fast_gelu_compiler>
         std::size_t local = 1024;
         if(inputs.front().type() == migraphx::shape::half_type)
         {
-            auto algo_num       = value_of(FASTGELU_ALGO{});
-            auto vec_div = algo_num == 1 ? 4 : 2;
+            auto algo_num = value_of(FASTGELU_ALGO{});
+            auto vec_div  = algo_num == 1 ? 4 : 2;
             options.set_launch_params(
                 v, compute_global_for(ctx, inputs.back().elements() / vec_div, 256), local);
             options.output      = inputs.back();
