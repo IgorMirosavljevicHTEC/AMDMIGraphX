@@ -26,7 +26,7 @@ struct parse_gelusig : op_parser<parse_gelusig>
         }
 
         auto l1    = info.add_literal(literal{shape{input->get_shape().type(), {1}}, {1.702f}});
-        auto inner   = info.add_broadcastable_binary_op("mul", input, l1);
+        auto inner = info.add_broadcastable_binary_op("mul", input, l1);
         inner      = info.add_instruction(make_op("sigmoid"), inner);
         return info.add_broadcastable_binary_op("mul", input, inner);
     }

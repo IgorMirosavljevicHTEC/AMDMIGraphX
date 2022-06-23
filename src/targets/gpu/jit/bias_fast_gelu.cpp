@@ -108,26 +108,26 @@ struct bias_fast_gelu_compiler : compiler<bias_fast_gelu_compiler>
         {
             options.set_launch_params(
                 v, compute_global_for(ctx, inputs.back().elements() / 4, 256), local);
-            options.output = inputs.back();
-            options.inputs = inputs;
-            auto algo_num = value_of(FASTGELU_ALGO{});
-            auto algo = bias_fast_gelu_half2_kernel;
+            options.output      = inputs.back();
+            options.inputs      = inputs;
+            auto algo_num       = value_of(FASTGELU_ALGO{});
+            auto algo           = bias_fast_gelu_half2_kernel;
             options.kernel_name = "bias_fast_gelu_half2_kernel";
             if(algo_num == 1)
             {
                 std::cout << "tanh4" << std::endl;
                 options.kernel_name = "bias_fast_gelu_half4_kernel";
-                algo = bias_fast_gelu_half4_kernel;
+                algo                = bias_fast_gelu_half4_kernel;
             }
-            else if (algo_num == 2)
+            else if(algo_num == 2)
             {
-                std::cout << "tanh" <<std::endl;
+                std::cout << "tanh" << std::endl;
                 options.kernel_name = "bias_fast_gelu_half4_kernel";
-                algo = bias_fast_gelu_half4_kernel;
+                algo                = bias_fast_gelu_half4_kernel;
             }
             else
             {
-                std::cout << "sigmoid" <<std::endl;
+                std::cout << "sigmoid" << std::endl;
             }
             options.params += " -DELEMENTS=" + std::to_string(inputs.back().elements() / 4);
             options.params += " -DBIAS_DIM=" + std::to_string(inputs.at(1).elements() / 4);
