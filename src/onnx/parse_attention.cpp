@@ -56,7 +56,10 @@ struct parse_attention : op_parser<parse_attention>
         auto input_rs = info.add_instruction(
             migraphx::make_op("reshape", {{"dims", {batch_size * sequence_length, hidden_size}}}),
             input);
+        //auto weights_mb = info.add_instruction(make_op("multibroadcast", {{"out_lens", {batch_size, hidden_size, hidden_size * 3}}}), weights);
+        //auto weights_mb = info.add_instruction(migraphx::make_op("unsqueeze", {{"axes", {0}}}), weights);
         auto gemm_2    = info.add_instruction(migraphx::make_op("dot"), input_rs, weights);
+        //gemm_2 = info.add_instruction(migraphx::make_op("reshape", {{"dims", {batch_size * sequence_length, hidden_size * 3}}}), gemm_2);
         auto add_gemms = info.add_instruction(migraphx::make_op("add"), gemm_1, gemm_2);
 
         // LaunchTransQkv: BxSx3xNxH => 3xBxNxSxH
