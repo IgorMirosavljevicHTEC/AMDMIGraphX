@@ -19,7 +19,8 @@ struct find_add_gelu_erf
 {
     static auto match_mul1()
     {
-        return match::name("mul")(match::args(match::name("add").bind("add"), match::is_constant()));
+        return match::name("mul")(
+            match::args(match::name("add").bind("add"), match::is_constant()));
     }
 
     static auto match_erf() { return match::name("erf")(match::arg(0)(match_mul1())); }
