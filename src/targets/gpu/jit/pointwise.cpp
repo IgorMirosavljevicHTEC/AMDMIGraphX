@@ -115,6 +115,7 @@ struct pointwise_compiler : compiler<pointwise_compiler>
             g.add_point_op("less", "migraphx::abs(${0} < ${1})");
             g.add_point_op("greater", "migraphx::abs(${0} > ${1})");
             g.add_point_op("not", "migraphx::abs(not ${0})");
+            //g.add_point_op("sigmoid", "decltype(${0}){1} / (decltype(${0}){1} + ${function:exp}(-${0}))");
             // Add explict conversions
             g.fresult([](const shape& s) {
                 return "migraphx::convert<" + shape::cpp_type(s.type()) + ">";

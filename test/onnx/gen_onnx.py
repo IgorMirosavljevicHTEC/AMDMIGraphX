@@ -2017,6 +2017,17 @@ def hardswish_test():
 
 
 @onnx_test
+def horizdots_test():
+    x = helper.make_tensor_value_info('x', TensorProto.FLOAT16, [768])
+    y = helper.make_tensor_value_info('y', TensorProto.FLOAT16, [2, 384, 768])
+    z = helper.make_tensor_value_info('z', TensorProto.FLOAT16, [2, 384, 768])
+
+    node = onnx.helper.make_node('HorizDots', inputs=['x', 'y'], outputs=['z'])
+
+    return ([node], [x, y], [z])
+
+
+@onnx_test
 def if_else_test():
     x = onnx.helper.make_tensor_value_info('x', onnx.TensorProto.FLOAT, [2, 3])
     y = onnx.helper.make_tensor_value_info('y', onnx.TensorProto.FLOAT, [2, 3])
