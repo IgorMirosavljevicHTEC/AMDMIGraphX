@@ -831,22 +831,23 @@ struct find_conv_dot_horiz_fusion
 
             for(auto&& arg : args)
             {
-                //std::cout << arg->inputs().front()->get_shape() << std::endl;
-                if (true)
+                // std::cout << arg->inputs().front()->get_shape() << std::endl;
+                if(true)
                     arg = arg->inputs().front();
                 std::cout << arg->get_shape() << std::endl;
                 m.move_instructions(arg, input);
             }
             // TODO: Check if axises match
             auto concat =
-                m.insert_instruction(input, make_op("concat", {{"axis", concat_axis-1}}), args);
+                m.insert_instruction(input, make_op("concat", {{"axis", concat_axis - 1}}), args);
             std::cout << concat->get_shape() << std::endl;
             std::cout << "fused: " << op.name() << std::endl;
-            auto batch_size = input->get_shape().lens().front();
+            auto batch_size      = input->get_shape().lens().front();
             auto sequence_length = input->get_shape().lens().at(1);
-            auto hidden_size = input->get_shape().lens().at(2);
+            auto hidden_size     = input->get_shape().lens().at(2);
             std::cout << batch_size << ", " << sequence_length << ", " << hidden_size << std::endl;
-            auto inputrs = m.add_instruction(make_op("reshape", {{"dims", {batch_size * sequence_length, hidden_size}}}), input);
+            auto inputrs = m.add_instruction(
+                make_op("reshape", {{"dims", {batch_size * sequence_length, hidden_size}}}), input);
             auto fused     = m.insert_instruction(std::next(input), op, inputrs, concat);
             int64_t offset = 0;
             for(auto arg : range(start, last))

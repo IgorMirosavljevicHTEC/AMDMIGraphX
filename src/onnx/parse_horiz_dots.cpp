@@ -22,9 +22,9 @@ struct parse_horizdots : op_parser<parse_horizdots>
         std::vector<float> twos(768 * 768, 2);
         std::vector<float> threes(768 * 768, 3);
         std::vector<float> fours(768, 4);
-        auto l1 = info.add_literal(literal{s, ones});
-        auto l2 = info.add_literal(literal{s, twos});
-        auto l3 = info.add_literal(literal{s, threes});
+        auto l1  = info.add_literal(literal{s, ones});
+        auto l2  = info.add_literal(literal{s, twos});
+        auto l3  = info.add_literal(literal{s, threes});
         auto l1b = info.add_instruction(make_op("multibroadcast", {{"out_lens", bcl}}), l1);
         auto l2b = info.add_instruction(make_op("multibroadcast", {{"out_lens", bcl}}), l2);
         auto l3b = info.add_instruction(make_op("multibroadcast", {{"out_lens", bcl}}), l3);
