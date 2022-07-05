@@ -847,7 +847,8 @@ struct find_conv_dot_horiz_fusion
             auto hidden_size     = input->get_shape().lens().at(2);
             std::cout << batch_size << ", " << sequence_length << ", " << hidden_size << std::endl;
             auto inputrs = m.add_instruction(
-                make_op("reshape", {{"dims", {batch_size * sequence_length, hidden_size}}}), input); */
+                make_op("reshape", {{"dims", {batch_size * sequence_length, hidden_size}}}), input);
+          */
             auto fused     = m.insert_instruction(std::next(input), op, input, concat);
             int64_t offset = 0;
             for(auto arg : range(start, last))

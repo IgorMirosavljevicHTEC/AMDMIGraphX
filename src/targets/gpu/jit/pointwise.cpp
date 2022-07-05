@@ -81,13 +81,14 @@ struct pointwise_compiler : compiler<pointwise_compiler>
             compute_global_for(ctx,
                                options.output.elements() / vec.size,
                                oversubscribe_if(not preloads.is_preloading())));
-        auto src = interpolate_string(pointwise_kernel,
-                                      {{"kernel", options.kernel_name},
-                                       {"params", enum_params(inputs.size(), "void * __restrict__ private_p")},
-                                       {"args", enum_params(inputs.size(), "private_p")},
-                                       {"lambda", v.at("lambda").to<std::string>()},
-                                       {"transformers", make_transformer_args(preloads, vec)},
-                                       {"preamble", v.get("preamble", std::string{})}});
+        auto src = interpolate_string(
+            pointwise_kernel,
+            {{"kernel", options.kernel_name},
+             {"params", enum_params(inputs.size(), "void * __restrict__ private_p")},
+             {"args", enum_params(inputs.size(), "private_p")},
+             {"lambda", v.at("lambda").to<std::string>()},
+             {"transformers", make_transformer_args(preloads, vec)},
+             {"preamble", v.get("preamble", std::string{})}});
         return compile_hip_code_object(src, options);
     }
 
