@@ -30,7 +30,7 @@ namespace migraphx {
 ${preamble}
 
 extern "C" {
-__global__ void reduce_kernel(void* input_p, void* output_p) 
+__global__ void reduce_kernel(void* __restrict__ input_p, void* __restrict__ output_p) 
 {
     
     transform_args(make_tensors(), ${transformers})(input_p, output_p)([](auto input, auto output) {

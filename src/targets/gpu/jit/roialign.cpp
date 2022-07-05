@@ -27,7 +27,7 @@ namespace migraphx {
 
 extern "C" {
 
-__global__ void roialign_kernel(void* in_x, void* in_rois, void* in_ind, void* y) 
+__global__ void roialign_kernel(void* __restrict__ in_x, void* __restrict__ in_rois, void* __restrict__ in_ind, void* __restrict__ y) 
 {
     make_tensors()(in_x, in_rois, in_ind, y)([](auto&&... xs) {
         auto settings = make_roalign_settings(MIGRAPHX_MAKE_CONSTANT(float{ROIS_OFFSET}),

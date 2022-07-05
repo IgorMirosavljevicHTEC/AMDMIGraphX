@@ -48,7 +48,7 @@ static const char* const bias_fast_gelu_half2_kernel = R"__migraphx__(
 namespace migraphx {
 extern "C" {
 
-__global__ void bias_fast_gelu_half2_kernel(void* input_p, void* bias_p, void* output_p) 
+__global__ void bias_fast_gelu_half2_kernel(void* __restrict__ input_p, void* __restrict__ bias_p, void* __restrict__ output_p) 
 {
     auto settings = make_biasfastgelu_settings(MIGRAPHX_MAKE_CONSTANT(size_t{ELEMENTS}), MIGRAPHX_MAKE_CONSTANT(size_t{BIAS_DIM}));
     bias_fast_gelu_half2(input_p, bias_p, output_p, settings);
