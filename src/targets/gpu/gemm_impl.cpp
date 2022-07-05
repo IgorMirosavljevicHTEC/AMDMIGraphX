@@ -1,3 +1,26 @@
+/*
+ * The MIT License (MIT)
+ *
+ * Copyright (c) 2015-2022 Advanced Micro Devices, Inc. All rights reserved.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
 #include <rocblas.h>
 #include <migraphx/gpu/gemm_impl.hpp>
 #include <migraphx/reduce_dims.hpp>
@@ -74,6 +97,12 @@ void gemm_impl(context& ctx,
                bool int8_x4_format,
                bool compute_fp32)
 {
+    const bool is_3inputs = (args.size() == 4);
+    if(!is_3inputs)
+    {
+        beta = 0;
+    }
+
     bool transa     = is_transposed(args[0].get_shape());
     bool transb     = is_transposed(args[1].get_shape());
     auto n_dim      = output_shape.lens().size();
@@ -82,12 +111,8 @@ void gemm_impl(context& ctx,
     rocblas_int lda = args[0].get_shape().strides()[transa ? dim_1 : dim_0];
     rocblas_int ldb = args[1].get_shape().strides()[transb ? dim_1 : dim_0];
     rocblas_int ldc = args[2].get_shape().strides()[dim_0];
+    rocblas_int ldd = is_3inputs ? args[3].get_shape().strides()[dim_0] : ldc;
 
-    bool is_3inputs = (args.size() == 4);
-    if(!is_3inputs)
-    {
-        beta = 0;
-    }
     rocblas_datatype arg_type = get_type(args[0].get_shape().type());
     auto output_type          = arg_type;
     if(output_type == rocblas_datatype_i8_r)
@@ -163,7 +188,7 @@ void gemm_impl(context& ctx,
                            ldc,
                            is_3inputs ? to_pointer(args[3]) : to_pointer(args[2]),
                            output_type,
-                           ldc,
+                           ldd,
                            compute_type,
                            rocblas_gemm_algo_standard,
                            0,
@@ -174,6 +199,7 @@ void gemm_impl(context& ctx,
             auto a_stride = get_batch_stride(args[0]);
             auto b_stride = get_batch_stride(args[1]);
             auto c_stride = get_batch_stride(args[2]);
+            auto d_stride = is_3inputs ? get_batch_stride(args[3]) : c_stride;
             rocblas_invoke(&rocblas_gemm_strided_batched_ex,
                            ctx.get_stream().get_rocblas(),
                            transb ? rocblas_operation_transpose : rocblas_operation_none,
@@ -197,8 +223,8 @@ void gemm_impl(context& ctx,
                            c_stride,
                            is_3inputs ? to_pointer(args[3]) : to_pointer(args[2]),
                            output_type,
-                           ldc,
-                           c_stride,
+                           ldd,
+                           d_stride,
                            num_matrices,
                            compute_type,
                            rocblas_gemm_algo_standard,

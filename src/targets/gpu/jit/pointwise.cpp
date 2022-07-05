@@ -1,3 +1,26 @@
+/*
+ * The MIT License (MIT)
+ *
+ * Copyright (c) 2015-2022 Advanced Micro Devices, Inc. All rights reserved.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
 #include <migraphx/gpu/compiler.hpp>
 #include <migraphx/gpu/context.hpp>
 #include <migraphx/gpu/compile_hip_code_object.hpp>
@@ -41,18 +64,6 @@ __global__ void ${kernel}(${params})
 } // namespace migraphx
 
 )__migraphx__";
-
-static std::vector<std::string> get_op_names(const module& m)
-{
-    std::vector<std::string> result;
-    for(auto& ins : m)
-    {
-        if(starts_with(ins.name(), "@"))
-            continue;
-        result.push_back(ins.name());
-    }
-    return result;
-}
 
 struct pointwise_compiler : compiler<pointwise_compiler>
 {
@@ -104,34 +115,14 @@ struct pointwise_compiler : compiler<pointwise_compiler>
         else
         {
             assert(not ins->module_inputs().empty());
-            auto* pm = ins->module_inputs().front();
-            run_passes(*pm, {eliminate_common_subexpression{}, dead_code_elimination{}});
-            cpp_generator g;
-            g.fmap([](const std::string& fname) { return "migraphx::" + fname; });
-            g.add_point_op("where", "${function:where}(${0}, ${1}, ${2})");
-            g.add_point_op("prelu", "${function:where}(${0} < 0, ${0} * ${1}, ${0})");
-            g.add_point_op("sign",
-                           "${function:where}(${0} > 0, 1, ${function:where}(${0} < 0, -1, 0))");
-            g.add_point_op("equal", "migraphx::abs(${0} == ${1})");
-            g.add_point_op("less", "migraphx::abs(${0} < ${1})");
-            g.add_point_op("greater", "migraphx::abs(${0} > ${1})");
-            g.add_point_op("not", "migraphx::abs(not ${0})");
-            // g.add_point_op("sigmoid", "decltype(${0}){1} / (decltype(${0}){1} +
-            // ${function:exp}(-${0}))");
-            // Add explict conversions
-            g.fresult([](const shape& s) {
-                return "migraphx::convert<" + shape::cpp_type(s.type()) + ">";
-            });
-            auto name = g.create_function(
-                g.generate_module(*pm).set_attributes({"__device__"}).set_generic_types(*pm));
-            std::string lambda = "MIGRAPHX_LIFT(" + name + ")";
-            auto op_names      = get_op_names(*pm);
-            op_names.push_back("kernel");
-            auto op_name_string = join_strings(op_names, "_");
-            return replace(compile_op(
-                ctx,
-                to_shapes(ins->inputs()),
-                {{"lambda", lambda}, {"preamble", g.str()}, {"kernel", op_name_string}}));
+            auto* pm           = ins->module_inputs().front();
+            auto pf            = generate_pointwise(*pm, "inner_pointwise");
+            std::string lambda = "MIGRAPHX_LIFT(inner_pointwise)";
+            auto kernel_name   = generate_name_from_ops(*pm) + "_kernel";
+            return replace(
+                compile_op(ctx,
+                           to_shapes(ins->inputs()),
+                           {{"lambda", lambda}, {"preamble", pf}, {"kernel", kernel_name}}));
         }
     }
 };

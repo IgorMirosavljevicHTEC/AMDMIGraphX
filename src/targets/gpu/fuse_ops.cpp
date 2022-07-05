@@ -1,3 +1,26 @@
+/*
+ * The MIT License (MIT)
+ *
+ * Copyright (c) 2015-2022 Advanced Micro Devices, Inc. All rights reserved.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
 #include <migraphx/pass_manager.hpp>
 #include <migraphx/dead_code_elimination.hpp>
 #include <migraphx/gpu/fuse_ops.hpp>
@@ -27,6 +50,7 @@
 #include <migraphx/array.hpp>
 #include <migraphx/make_op.hpp>
 #include <migraphx/op/clip.hpp>
+#include <migraphx/op/contiguous.hpp>
 #include <cmath>
 #include <set>
 
@@ -318,6 +342,7 @@ void move_standard_front(std::vector<instruction_ref>& args)
 
 auto gpu_name(const std::string& s) { return match::name("gpu::" + s); }
 
+namespace {
 struct find_layernorm
 {
     auto matcher() const { return match::layernorm(&gpu_name); }
@@ -683,6 +708,7 @@ struct miopen_fusion
         return args.back();
     }
 };
+MIGRAPHX_REGISTER_OP(miopen_fusion)
 
 struct miopen_conv_bias
 {
@@ -807,23 +833,15 @@ void apply_conv_bias(context& ctx, module& m, const match::matcher_result& r)
     m.replace_instruction(ins, cb, input_ins, weights_ins, old_ws_ins, bias_ins, alloc_ins);
 }
 
-inline auto precompile_name(std::string s) // NOLINT
+template <class... Strings>
+inline auto precompile_name(Strings... names) // NOLINT
 {
     return match::make_basic_pred_matcher([=](instruction_ref ins) {
         if(ins->name() != "gpu::precompile_op")
             return false;
         auto op = from_value<operation>(ins->get_operator().to_value().at("op"));
-        return (op.name() == s);
+        return (contains({names...}, op.name()));
     });
-}
-
-template <class... Ms>
-auto conv_bias_pointwise(Ms... ms)
-{
-    return precompile_name("pointwise")(
-        match::either_arg(0, 1)(bias_shape(match::used_once()).bind("bias"),
-                                fusable_conv(match::used_once()).bind("conv")),
-        ms...);
 }
 
 struct find_conv_bias
@@ -950,9 +968,9 @@ struct find_gemm_pointwise
     {
         return precompile_name("pointwise")(
             match::nargs(3),
-            match::all_of[match::inputs()](match::standard_shape()),
-            match::either_arg(0, 1)(match::used_once().bind("c"),
-                                    match::name("gpu::gemm")(match::nargs(3)).bind("gemm")));
+            match::either_arg(0, 1)(
+                match::any_of(match::standard_shape(), match::is_constant()).bind("c"),
+                match::name("gpu::gemm")(match::nargs(3), match::used_once()).bind("gemm")));
     }
 
     // TODO: Move to matcher.hpp
@@ -1027,6 +1045,14 @@ struct find_gemm_pointwise
                gemm, ins->module_inputs().front(), ins->inputs().front() == gemm_ins ? 0 : 1))
             return;
 
+        // const-fold input if not standard shape since rocblas can't handle it
+        if(not c_ins->get_shape().standard())
+        {
+            auto c = op::contiguous{};
+            auto l = c.compute(c.compute_shape({c_ins->get_shape()}), {c_ins->eval()});
+            c_ins  = m.add_literal(l.get_shape(), l.data());
+        }
+
         auto inputs = gemm_ins->inputs();
         inputs.pop_back();
 
@@ -1053,6 +1079,7 @@ struct find_commutative_broadcast
         m.replace_instruction(ins, ins->get_operator(), args);
     }
 };
+} // namespace
 
 struct find_contiguous
 {
@@ -1088,6 +1115,31 @@ struct find_contiguous_pointwise
     }
 };
 
+struct find_layernorm_pointwise
+{
+    auto matcher() const
+    {
+        return precompile_name("pointwise")(match::arg(0)(
+            precompile_name("gpu::prelayernorm", "gpu::preadd_layernorm").bind("layernorm")));
+    }
+
+    void apply(module& m, const match::matcher_result& r) const
+    {
+        auto ins       = r.result;
+        auto layernorm = r.instructions["layernorm"];
+        auto* pm       = ins->module_inputs().front();
+
+        if(not layernorm->module_inputs().empty())
+            return;
+
+        auto inputs = layernorm->inputs();
+        inputs.pop_back();
+        inputs.insert(inputs.end(), ins->inputs().begin() + 1, ins->inputs().end());
+
+        m.replace_instruction(ins, layernorm->get_operator(), inputs, {pm});
+    }
+};
+
 void fuse_ops::apply(module& m) const
 {
     match::find_matches(m, find_contiguous_pointwise{}, find_gelu{}, find_gelu_new{fast_math});
@@ -1110,6 +1162,7 @@ void fuse_ops::apply(module& m) const
     match::find_matches(m,
                         find_triadd_layernorm{},
                         find_gemm_add{},
+                        find_layernorm_pointwise{},
                         find_gemm_pointwise{},
                         find_commutative_broadcast{});
     match::find_matches(m, find_contiguous{});

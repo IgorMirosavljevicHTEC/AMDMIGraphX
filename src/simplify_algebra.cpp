@@ -1,3 +1,26 @@
+/*
+ * The MIT License (MIT)
+ *
+ * Copyright (c) 2015-2022 Advanced Micro Devices, Inc. All rights reserved.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
 #include <migraphx/simplify_algebra.hpp>
 #include <migraphx/dead_code_elimination.hpp>
 #include <migraphx/program.hpp>
@@ -280,37 +303,26 @@ struct find_double_add_lit_broadcast
 
 struct find_inner_broadcast
 {
-    auto matcher() const
-    {
-        return pointwise(match::all_of[match::inputs()](
-            match::broadcast_shape(), match::name("broadcast", "multibroadcast")));
-    }
+    auto matcher() const { return pointwise(match::all_of[match::inputs()](match::broadcast())); }
 
     void apply(module& m, const match::matcher_result& r) const
     {
-        auto ins    = r.result;
-        auto inputs = ins->inputs();
-        if(inputs.empty())
+        auto ins        = r.result;
+        auto broadcasts = ins->inputs();
+        if(broadcasts.empty())
             return;
-        std::transform(inputs.begin(), inputs.end(), inputs.begin(), [&](auto i) {
-            if(contains({"broadcast", "multibroadcast"}, i->name()))
-                return i->inputs().front();
-            else
-                return i;
-        });
-
-        if(not std::all_of(inputs.begin(), inputs.end(), [&](auto& x) {
-               return x->get_shape() == inputs.front()->get_shape();
+        std::vector<instruction_ref> inputs;
+        std::transform(broadcasts.begin(),
+                       broadcasts.end(),
+                       std::back_inserter(inputs),
+                       [](auto i) { return i->inputs().front(); });
+        if(std::any_of(inputs.begin(), inputs.end(), [&](auto i) {
+               return i->get_shape() != inputs.front()->get_shape();
            }))
             return;
 
-        auto op  = m.insert_instruction(ins, ins->get_operator(), inputs);
-        auto bop = std::find_if(ins->inputs().begin(), ins->inputs().end(), [&](auto i) {
-            return contains({"broadcast", "multibroadcast"}, i->name());
-        });
-
-        assert(bop != ins->inputs().end());
-        m.replace_instruction(ins, (*bop)->get_operator(), op);
+        auto op = m.insert_instruction(ins, ins->get_operator(), inputs);
+        m.replace_instruction(ins, broadcasts.front()->get_operator(), op);
     }
 };
 
@@ -438,8 +450,9 @@ struct find_splits
 {
     auto matcher() const
     {
-        return match::any(match::any_of[match::outputs()](match::name("slice")(
-            match::any_of[match::outputs()](match::pointwise(), reduction()))));
+        return match::any(
+            match::any_of[match::outputs()](match::name("slice")(match::any_of[match::outputs()](
+                match::pointwise(match::any_of(match::nargs(1), match::nargs(2))), reduction()))));
     }
 
     static bool is_dependent(const module& m, instruction_ref ins1, instruction_ref ins2)
