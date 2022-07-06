@@ -462,6 +462,12 @@ struct mlir_program
                 std::copy(padding.begin(), padding.end(), std::back_inserter(v.at("padding")));
             }
         }
+        else if (op.name() == "multibroadcast")
+        {
+            value w;
+            w["output_lens"] = v["out_lens"].to_vector<std::size_t>();
+            std::swap(v, w);
+        }
         return v;
     }
 
@@ -597,9 +603,8 @@ void adjust_param_shapes(module& m, const std::vector<instruction_ref>& inputs)
         auto new_param =
             std::accumulate(ops.begin(),
                             ops.end(),
-                            m.add_parameter(name + ".x", shape{input.type(), lens}),
+                            m.add_parameter(name + ".0", shape{input.type(), lens}),
                             [&](auto x, auto op) { return m.insert_instruction(param, op, x); });
-        assert(new_param.get_shape() == param.get_shape());
         m.replace_instruction(param, new_param);
         m.remove_instruction(param);
     }
