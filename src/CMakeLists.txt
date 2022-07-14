@@ -80,6 +80,7 @@ add_library(migraphx
     replace_allocate.cpp
     simplify_qdq.cpp
     rewrite_batchnorm.cpp
+    rewrite_gelu.cpp
     rewrite_pooling.cpp
     rewrite_quantization.cpp
     rewrite_rnn.cpp
@@ -88,6 +89,7 @@ add_library(migraphx
     shape.cpp
     simplify_algebra.cpp
     simplify_reshapes.cpp
+    target_assignments.cpp
     tmp_dir.cpp
     value.cpp
     verify_args.cpp
