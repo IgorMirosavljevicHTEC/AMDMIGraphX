@@ -47,6 +47,25 @@ float sigmoid(float x) { return 1 / (1 + expf(-x)); }
 
 float elu(float a, float x) { return x > 0 ? x : a * std::expm1(x); }
 
+TEST_CASE(abs_dynamic_test)
+{
+    migraphx::program p;
+    auto* mm             = p.get_main_module();
+    std::vector<float> a = {-1, 2, -3, 4};
+    migraphx::shape s{migraphx::shape::float_type, {{2, 8, 0}, {2, 2, 0}}};
+    auto input = mm->add_parameter("X", s);
+    mm->add_instruction(migraphx::make_op("abs"), input);
+    p.compile(migraphx::ref::target{});
+    migraphx::parameter_map params0;
+    migraphx::shape input_fixed_shape0{migraphx::shape::float_type, {2, 2}};
+    params0["X"] = migraphx::argument(input_fixed_shape0, a.data());
+    auto result  = p.eval(params0).back();
+    std::vector<float> results_vector(4);
+    result.visit([&](auto output) { results_vector.assign(output.begin(), output.end()); });
+    std::vector<float> gold{1, 2, 3, 4};
+    EXPECT(migraphx::verify_range(results_vector, gold));
+}
+
 TEST_CASE(abs_test)
 {
     migraphx::program p;
@@ -3383,6 +3402,27 @@ TEST_CASE(multinomial_test)
         return static_cast<double>(n) / res_dist_sum;
     });
     EXPECT(migraphx::verify_range(norm, res_norm, 100000));
+}
+
+TEST_CASE(neg_dynamic_test)
+{
+    migraphx::program p;
+    auto* mm = p.get_main_module();
+    migraphx::shape s{migraphx::shape::float_type, {{2, 4, 0}, {3, 3, 0}}};
+    std::vector<float> a = {1.0f, 1.3f, -1.2f, 0.0f, -100.f, 200.f};
+    auto input           = mm->add_parameter("X", s);
+    auto ret             = mm->add_instruction(migraphx::make_op("neg"), input);
+    mm->add_return({ret});
+    p.compile(migraphx::ref::target{});
+    migraphx::parameter_map params0;
+    migraphx::shape input_fixed_shape0{migraphx::shape::float_type, {2, 3}};
+    params0["X"] = migraphx::argument(input_fixed_shape0, a.data());
+    auto result  = p.eval(params0).back();
+    std::vector<float> result_vector;
+    result.visit([&](auto output) { result_vector.assign(output.begin(), output.end()); });
+    std::vector<float> gold = a;
+    std::transform(gold.begin(), gold.end(), gold.begin(), std::negate<float>());
+    EXPECT(migraphx::verify_range(result_vector, gold));
 }
 
 TEST_CASE(neg_test)
