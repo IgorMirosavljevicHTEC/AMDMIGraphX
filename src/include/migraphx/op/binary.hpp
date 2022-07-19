@@ -60,10 +60,17 @@ struct binary : op_name<Derived>
     value attributes() const { return base_attributes(); }
     shape compute_shape(std::vector<shape> inputs) const
     {
-        check_shapes{inputs, static_cast<const Derived&>(*this)}.has(2).same_type().same_dims();
+        check_shapes{inputs, static_cast<const Derived&>(*this), true}
+            .has(2)
+            .same_type()
+            .same_dims();
         auto s0 = inputs.at(0);
         auto s1 = inputs.at(1);
-        if(s0 == s1 and s0.packed())
+        if(s0.dynamic() != s1.dynamic())
+        {
+            MIGRAPHX_THROW("BINARY: dynamic and fixed shape inputs");
+        }
+        else if(s0 == s1 and (s0.dynamic() or s0.packed()))
         {
             return s0;
         }
@@ -83,7 +90,11 @@ struct binary : op_name<Derived>
 
     argument compute(const shape& output_shape, std::vector<argument> args) const
     {
-        argument result{output_shape};
+
+        shape s = output_shape.dynamic()
+                      ? compute_shape({args.at(0).get_shape(), args.at(1).get_shape()})
+                      : output_shape;
+        argument result{s};
         visit_all(result, args[0], args[1])([&](auto output, auto input1, auto input2) {
             std::transform(input1.begin(),
                            input1.end(),
