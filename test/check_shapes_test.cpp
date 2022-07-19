@@ -21,30 +21,31 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-#ifndef MIGRAPHX_GUARD_RTGLIB_NORMALIZE_ATTRIBUTES_HPP
-#define MIGRAPHX_GUARD_RTGLIB_NORMALIZE_ATTRIBUTES_HPP
+#include "test.hpp"
+#include <migraphx/check_shapes.hpp>
+#include <migraphx/make_op.hpp>
 
-#include <migraphx/config.hpp>
-#include <migraphx/shape.hpp>
-#include <cstring>
-#include <vector>
+/*!
+ * Tests for check_shapes object handling dynamic shapes
+ */
 
-namespace migraphx {
-inline namespace MIGRAPHX_INLINE_NS {
+using migraphx::shape;
 
-struct operation;
-
-template <class T, class...>
-struct select_dependent_type
+TEST_CASE(fail_dynamic_shape)
 {
-    using type = T;
-};
-template <class T, class... Ts>
-using dependent_type = typename select_dependent_type<T, Ts...>::type;
+    shape a{shape::int64_type, {3}};
+    shape b{shape::float_type, {{3, 6, 0}, {4, 4, 0}}};
+    auto op = migraphx::make_op("add");
+    EXPECT(test::throws([&] { migraphx::check_shapes{{a, b}, op}; }));
+}
 
-bool normalize_attributes(operation& op, const std::vector<std::size_t>& lens);
+TEST_CASE(allow_dynamic_shape)
+{
+    shape a{shape::int64_type, {3}};
+    shape b{shape::float_type, {{3, 6, 0}, {4, 4, 0}}};
+    auto op = migraphx::make_op("add");
+    migraphx::check_shapes{{a, b}, op, true};
+    // Should have no exceptions
+}
 
-} // namespace MIGRAPHX_INLINE_NS
-} // namespace migraphx
-
-#endif
+int main(int argc, const char* argv[]) { test::run(argc, argv); }
