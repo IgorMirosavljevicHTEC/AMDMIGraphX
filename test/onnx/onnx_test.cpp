@@ -1350,6 +1350,29 @@ TEST_CASE(equal_bool_test)
     EXPECT(p == prog);
 }
 
+TEST_CASE(equal_dynamic_test)
+{
+    migraphx::program p;
+    auto* mm = p.get_main_module();
+    migraphx::shape sf{migraphx::shape::float_type, {{2, 2, 0}, {1, 10, 0}}};
+    migraphx::shape sb{migraphx::shape::float_type, {{2, 2, 0}, {1, 10, 0}}};
+
+    auto input1 = mm->add_parameter("x1", sf);
+    auto input2 = mm->add_parameter("x2", sb);
+    auto eq     = mm->add_instruction(migraphx::make_op("equal"), input1, input2);
+    auto ret    = mm->add_instruction(
+        migraphx::make_op("convert",
+                          {{"target_type", migraphx::to_value(migraphx::shape::bool_type)}}),
+        eq);
+    mm->add_return({ret});
+
+    migraphx::onnx_options options;
+    options.default_dyn_dim_value = {1, 10, 0};
+    auto prog                     = migraphx::parse_onnx("equal_dynamic_test.onnx", options);
+
+    EXPECT(p == prog);
+}
+
 TEST_CASE(erf_test)
 {
     migraphx::program p;

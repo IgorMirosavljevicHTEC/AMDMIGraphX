@@ -1452,6 +1452,22 @@ def equal_bool_test():
 
 
 @onnx_test
+def equal_dynamic_test():
+
+    x1 = helper.make_tensor_value_info('x1', TensorProto.FLOAT, [2, None])
+    x2 = helper.make_tensor_value_info('x2', TensorProto.FLOAT, [2, None])
+    y = helper.make_tensor_value_info('y', TensorProto.FLOAT, [2, None])
+
+    node = onnx.helper.make_node(
+        'Equal',
+        inputs=['x1', 'x2'],
+        outputs=['y'],
+    )
+
+    return ([node], [x1, x2], [y])
+
+
+@onnx_test
 def erf_test():
     x = helper.make_tensor_value_info('x', TensorProto.FLOAT, [10, 15])
     y = helper.make_tensor_value_info('y', TensorProto.FLOAT, [10, 15])
