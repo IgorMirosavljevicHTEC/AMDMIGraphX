@@ -54,7 +54,7 @@ struct test_pad_large : verify_program<test_pad_large>
         migraphx::program p;
         auto* mm = p.get_main_module();
         migraphx::shape s0{migraphx::shape::int32_type, {586, 64, 112, 112}};
-        auto bad_i = 469762048;
+        auto bad_i     = 469762048;
         auto multi_idx = s0.multi(bad_i);
         for(auto idx : multi_idx)
         {

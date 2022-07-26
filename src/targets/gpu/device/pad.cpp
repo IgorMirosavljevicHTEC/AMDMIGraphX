@@ -38,9 +38,9 @@ namespace device {
 argument
 pad(hipStream_t stream, argument result, argument arg1, float value, std::vector<std::int64_t> pads)
 {
-    std::size_t nelements = arg1.get_shape().elements();
+    std::size_t nelements                = arg1.get_shape().elements();
     std::vector<std::size_t> out_strides = result.get_shape().strides();
-    auto out_size = out_strides.size();
+    auto out_size                        = out_strides.size();
     hip_visit_all(result, arg1)([&](auto output, auto input) {
         using type      = typename decltype(output)::value_type;
         using hip_index = typename decltype(output)::hip_index;
