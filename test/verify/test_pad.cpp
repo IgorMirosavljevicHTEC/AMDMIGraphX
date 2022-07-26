@@ -46,3 +46,23 @@ struct test_pad : verify_program<test_pad>
         return p;
     }
 };
+
+struct test_pad_large : verify_program<test_pad_large>
+{
+    migraphx::program create_program() const
+    {
+        migraphx::program p;
+        auto* mm = p.get_main_module();
+        migraphx::shape s0{migraphx::shape::int32_type, {586, 64, 112, 112}};
+        auto bad_i = 469762048;
+        auto multi_idx = s0.multi(bad_i);
+        for(auto idx : multi_idx)
+        {
+            std::cout << idx << std::endl;
+        }
+        std::vector<int64_t> pads0 = {0, 0, 0, 0, 0, 0, 1, 1};
+        auto l0                    = mm->add_parameter("x", s0);
+        mm->add_instruction(migraphx::make_op("pad", {{"pads", pads0}, {"value", 1.0f}}), l0);
+        return p;
+    }
+};

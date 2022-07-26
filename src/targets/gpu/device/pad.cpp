@@ -39,6 +39,8 @@ argument
 pad(hipStream_t stream, argument result, argument arg1, float value, std::vector<std::int64_t> pads)
 {
     std::size_t nelements = arg1.get_shape().elements();
+    std::vector<std::size_t> out_strides = result.get_shape().strides();
+    auto out_size = out_strides.size();
     hip_visit_all(result, arg1)([&](auto output, auto input) {
         using type      = typename decltype(output)::value_type;
         using hip_index = typename decltype(output)::hip_index;
@@ -47,14 +49,21 @@ pad(hipStream_t stream, argument result, argument arg1, float value, std::vector
             [=](auto i) __device__ { output.data()[i] = device_val; });
 
         hip_index offsets;
+        hip_index strides;
         std::copy(pads.begin(), pads.begin() + offsets.size(), offsets.begin());
+        std::copy(out_strides.begin(), out_strides.end(), strides.begin());
         gs_launch(stream, nelements)([=](auto i) __device__ {
             auto idx = input.get_shape().multi(i);
             for(std::size_t j = 0; j < offsets.size(); j++)
             {
                 idx[j] += offsets[j];
             }
-            output[idx] = input.data()[i];
+            auto new_i = 0;
+            for(auto j = 0; j < out_size; j++)
+            {
+                new_i += idx[j] * strides[j];
+            }
+            output.data()[new_i] = input.data()[i];
         });
     });
     return result;

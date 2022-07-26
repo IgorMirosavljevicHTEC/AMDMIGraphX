@@ -35,7 +35,7 @@ inline namespace MIGRAPHX_INLINE_NS {
 namespace gpu {
 namespace device {
 
-using index_int = std::uint32_t;
+using index_int = std::uint64_t;
 
 #define MIGRAPHX_DEVICE_CONSTEXPR constexpr __device__ __host__ // NOLINT
 
