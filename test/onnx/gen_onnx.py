@@ -3448,8 +3448,10 @@ def pad_test():
 
 @onnx_test
 def pad_large_test():
-    x = helper.make_tensor_value_info('0', TensorProto.FLOAT, [586, 64, 112, 112])
-    y = helper.make_tensor_value_info('1', TensorProto.FLOAT, [586, 64, 113, 113])
+    x = helper.make_tensor_value_info('0', TensorProto.FLOAT,
+                                      [586, 64, 112, 112])
+    y = helper.make_tensor_value_info('1', TensorProto.FLOAT,
+                                      [586, 64, 113, 113])
 
     sizes = np.array([0, 0, 0, 0, 0, 0, 1, 1])
     pad_tensor = helper.make_tensor(name='pad_size',
@@ -3461,9 +3463,7 @@ def pad_large_test():
                                     outputs=['arg_pad'],
                                     value=pad_tensor)
 
-    node = onnx.helper.make_node('Pad',
-                                 inputs=['0', 'arg_pad'],
-                                 outputs=['1'])
+    node = onnx.helper.make_node('Pad', inputs=['0', 'arg_pad'], outputs=['1'])
 
     return ([arg_pad, node], [x], [y])
 
