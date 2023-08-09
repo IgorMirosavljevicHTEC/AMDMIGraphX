@@ -1,3 +1,4 @@
+branch_name;flag_1;flag_2
 test1;SOME_VARIABLE=1
 test2;SOME_VARIABLE=1;OTHER_VARIABLE=2
 test3;THIRD="abc"
