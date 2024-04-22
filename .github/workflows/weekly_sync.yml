@@ -22,19 +22,6 @@ jobs:
         run:  |
           sed -i "s/ROCm\/rocMLIR@[^ ]*/ROCm\/rocMLIR@${{ env.rocmlirsha }}/g" requirements.txt
           cat requirements.txt
-          
-
-      #- name: action_replace
-      #  uses: Nambers/ReplaceStringInFile@v1.3
-      #  with:
-      #    path: ${{ github.workspace }}/requirements.txt
-          # The regex of old string, which should be replaced
-      #    oldString: ROCmSoftwarePlatform/rocMLIR@(/S+)  
-          # Replace old string to this string
-      #    newString: ROCmSoftwarePlatform/rocMLIR@${{ env.rocmlirsha }} 
-          # Print out file content after replacement
-      #    showFileContent: true
-
 
       - name: Make changes to pull request
         uses: peter-evans/create-pull-request@v6.0.4
@@ -55,7 +42,7 @@ jobs:
 
             [1]: https://github.com/peter-evans/create-pull-request
           labels: |
-            onnxruntime
+            rocMLIR
             dependencies
             automated 
             skip bot checks
