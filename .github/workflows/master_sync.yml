@@ -15,11 +15,11 @@ jobs:
 
       - uses: actions/checkout@v4.1.1
         with: 
-          ref: develop
-      
+          ref: master
+          
       - uses: actions/checkout@v4.1.1
         with: 
-          ref: master
+          ref: develop
       
       - name: Sync master
         run:  |
