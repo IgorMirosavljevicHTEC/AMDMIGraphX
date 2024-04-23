@@ -83,7 +83,7 @@ jobs:
           BUILD_NAVI: '0'
           TOKEN: ${{ secrets.MIGRAPHX_BOT_TOKEN }}
         run: |
-          cat $GITHUB_WORKSPACE/AMDMIGraphX/requirements.txt
+          cat $GITHUB_WORKSPACE/requirements.txt
           cd $GITHUB_WORKSPACE/migraphx-benchmark-utils/scripts
       #    ./build_migraphx_docker.sh IgorMirosavljevicHTEC/migraphx-benchmark-utils
 
