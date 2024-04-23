@@ -85,7 +85,7 @@ jobs:
         run: |
           cat $GITHUB_WORKSPACE/requirements.txt
           cd $GITHUB_WORKSPACE/migraphx-benchmark-utils/scripts
-          ./build_migraphx_docker.sh IgorMirosavljevicHTEC/migraphx-benchmark-utils
+          ./build_migraphx_docker.sh IgorMirosavljevicHTEC/migraphx-benchmark-utils rocMLIR-sync-${{ env.todays_date }}
 
       - name: Build docker
         if: ${{ github.event_name != 'pull_request' }}
