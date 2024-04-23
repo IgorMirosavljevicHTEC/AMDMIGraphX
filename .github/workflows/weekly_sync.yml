@@ -90,7 +90,9 @@ jobs:
       - name: Build docker
         if: ${{ github.event_name != 'pull_request' }}
         run: >
-          cd $GITHUB_WORKSPACE/migraphx-benchmark-utils && git checkout rocMLIR-sync-${{ env.todays_date }} && 
+          cd $GITHUB_WORKSPACE && git fetch &&
+          git checkout rocMLIR-sync-${{ env.todays_date }} &&
+          cd $GITHUB_WORKSPACE/migraphx-benchmark-utils &&  
           docker build --no-cache
           --build-arg BRANCH=rocMLIR-sync-${{ env.todays_date }} 
           --build-arg DOCKERBASE=rocm-migraphx:6.0.2-temp
