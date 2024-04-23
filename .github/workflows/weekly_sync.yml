@@ -58,12 +58,6 @@ jobs:
             skip bot checks
           draft: false
           base: develop
-
-      - name: Checkout code
-        if: ${{ github.event_name != 'pull_request' }}
-        uses: actions/checkout@v4.1.1
-        with:
-          ref: rocMLIR-sync-${{ env.todays_date }}
         
       - name: Checkout utils
         if: ${{ github.event_name != 'pull_request' }}
@@ -73,6 +67,12 @@ jobs:
           path: migraphx-benchmark-utils
           token: ${{ secrets.MIGRAPHX_BOT_TOKEN }}
           ref: main
+
+      - name: Checkout code
+        if: ${{ github.event_name != 'pull_request' }}
+        uses: actions/checkout@v4.1.1
+        with:
+          ref: rocMLIR-sync-${{ env.todays_date }}
           
       #- name: Rebuild base image
       #  if: ${{ github.event_name != 'pull_request' }}
