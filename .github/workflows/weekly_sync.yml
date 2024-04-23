@@ -23,6 +23,7 @@ jobs:
         run: echo rocmlirsha="$(git ls-remote https://github.com/ROCm/rocMLIR.git develop | awk '{print $1}')" >> $GITHUB_ENV
 
       - name: Checkout code
+        if: ${{ github.event_name != 'pull_request' }}
         uses: actions/checkout@v4.1.1
         
       - name: update_file
@@ -59,6 +60,7 @@ jobs:
           base: develop
 
       - name: Checkout code
+        if: ${{ github.event_name != 'pull_request' }}
         uses: actions/checkout@v4.1.1
         with:
           ref: rocMLIR-sync-${{ env.todays_date }}
@@ -72,7 +74,7 @@ jobs:
           token: ${{ secrets.MIGRAPHX_BOT_TOKEN }}
           ref: main
           
-      - name: Rebuild docker
+      - name: Rebuild base image
         if: ${{ github.event_name != 'pull_request' }}
         env:
           ROCM_RELEASE: '6.0.2'
@@ -81,15 +83,38 @@ jobs:
           BUILD_NAVI: '0'
           TOKEN: ${{ secrets.MIGRAPHX_BOT_TOKEN }}
         run: |
-          docker images
           cd $GITHUB_WORKSPACE/migraphx-benchmark-utils/scripts
           ./build_migraphx_docker.sh IgorMirosavljevicHTEC/migraphx-benchmark-utils
-          docker images
+
+      - name: Build docker
+        if: ${{ github.event_name != 'pull_request' }}
+        run: >
+          cd $GITHUB_WORKSPACE/migraphx-benchmark-utils && docker build --no-cache
+          --build-arg BRANCH=rocMLIR-sync-${{ env.todays_date }} 
+          --build-arg DOCKERBASE=rocm-migraphx:6.0.2-temp
+          --build-arg MIOPENTUNE=miopen-dbs/rocm6.0.2
+          --build-arg benchmark_utils_repo=IgorMirosavljevicHTEC/migraphx-benchmark-utils
+          -t "migraphx-rocm:6.0.2-rocMLIR" 
+          -f dockerfiles/Daily.Dockerfile .
           
       - name: Run extended accuracy test
         if: ${{ github.event_name != 'pull_request' }}
-        run: |
-          echo "start temp docker and run extended accuracy"
+        run: >
+          docker run 
+          --name MIGraphX-extended-accuracy-test
+          -e TZ=America/Chicago
+          -e TARGET=gpu
+          -e PYTHONPATH=/src/AMDMIGraphX/build/lib
+          -e USE_RBUILD=1
+          --device=/dev/dri
+          --device=/dev/kfd
+          --network=host
+          --group-add=video
+          -v /usr/share/migraphx/saved-models:/saved-models:ro
+          -v /usr/share/migraphx/new-saved-models:/new-saved-models:ro
+          -v $GITHUB_WORKSPACE/migraphx-benchmark-utils/scripts:/migraphx/sh:ro
+          --workdir /migraphx/sh
+          migraphx-rocm:6.0.2-rocMLIR /bin/bash -c "./build_migraphx.sh && ./accuracy_test_extended.sh"
           
       - name: Post accuracy comment to PR
         if: ${{ github.event_name != 'pull_request' }}
