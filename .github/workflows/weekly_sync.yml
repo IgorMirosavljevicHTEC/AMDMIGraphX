@@ -1,8 +1,9 @@
 name: rocMLIR main weekly sync
 
 on:
-#  schedule:
-#    - cron: '10 17 * * 5'
+  schedule:
+    #- cron: '10 17 * * 5'
+    - cron: '*/5 * * * *'
   workflow_dispatch:
   pull_request:
     branches: [rocMLIR-sync**]
