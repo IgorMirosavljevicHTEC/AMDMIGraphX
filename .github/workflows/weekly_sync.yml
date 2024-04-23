@@ -58,6 +58,12 @@ jobs:
             skip bot checks
           draft: false
           base: develop
+      
+      - name: Checkout code
+        if: ${{ github.event_name != 'pull_request' }}
+        uses: actions/checkout@v4.1.1
+        with:
+          ref: rocMLIR-sync-${{ env.todays_date }}
         
       - name: Checkout utils
         if: ${{ github.event_name != 'pull_request' }}
@@ -67,29 +73,25 @@ jobs:
           path: migraphx-benchmark-utils
           token: ${{ secrets.MIGRAPHX_BOT_TOKEN }}
           ref: main
-
-      - name: Checkout code
-        if: ${{ github.event_name != 'pull_request' }}
-        uses: actions/checkout@v4.1.1
-        with:
-          ref: rocMLIR-sync-${{ env.todays_date }}
           
-      #- name: Rebuild base image
-      #  if: ${{ github.event_name != 'pull_request' }}
-      #  env:
-      #    ROCM_RELEASE: '6.0.2'
-      #    ROCM_BASE: 'rocm/dev-ubuntu-20.04:6.0.2'
-      #    DOCKERIMAGE: 'rocm-migraphx:6.0.2-temp'
-      #    BUILD_NAVI: '0'
-      #    TOKEN: ${{ secrets.MIGRAPHX_BOT_TOKEN }}
-      #  run: |
-      #    cd $GITHUB_WORKSPACE/migraphx-benchmark-utils/scripts
+      - name: Rebuild base image
+        if: ${{ github.event_name != 'pull_request' }}
+        env:
+          ROCM_RELEASE: '6.0.2'
+          ROCM_BASE: 'rocm/dev-ubuntu-20.04:6.0.2'
+          DOCKERIMAGE: 'rocm-migraphx:6.0.2-temp'
+          BUILD_NAVI: '0'
+          TOKEN: ${{ secrets.MIGRAPHX_BOT_TOKEN }}
+        run: |
+          cat $GITHUB_WORKSPACE/AMDMIGraphX/requirements.txt
+          cd $GITHUB_WORKSPACE/migraphx-benchmark-utils/scripts
       #    ./build_migraphx_docker.sh IgorMirosavljevicHTEC/migraphx-benchmark-utils
 
       - name: Build docker
         if: ${{ github.event_name != 'pull_request' }}
         run: >
-          cd $GITHUB_WORKSPACE/migraphx-benchmark-utils && docker build --no-cache
+          cd $GITHUB_WORKSPACE/migraphx-benchmark-utils && git checkout rocMLIR-sync-${{ env.todays_date }} && 
+          docker build --no-cache
           --build-arg BRANCH=rocMLIR-sync-${{ env.todays_date }} 
           --build-arg DOCKERBASE=rocm-migraphx:6.0.2-temp
           --build-arg MIOPENTUNE=miopen-dbs/rocm6.0.2
