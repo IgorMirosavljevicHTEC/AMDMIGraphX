@@ -4,26 +4,36 @@ on:
 #  schedule:
 #    - cron: '10 17 * * 5'
   workflow_dispatch:
+  pull_request:
+    branches:
+      - 'rocMLIR-sync*'
+    types:
+      - closed
 
 jobs:
   createPullRequest:
     name: Update and create pull request
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
       - name: get_date
+        if: ${{ github.event_name != 'pull_request' }}
         run: echo todays_date="$(date +'%Y-%m-%d')" >> $GITHUB_ENV
 
       - name: extract_sha1 
+        if: ${{ github.event_name != 'pull_request' }}
         run: echo rocmlirsha="$(git ls-remote https://github.com/ROCm/rocMLIR.git develop | awk '{print $1}')" >> $GITHUB_ENV
 
-      - uses: actions/checkout@v4.1.1
+      - name: Checkout code
+        uses: actions/checkout@v4.1.1
         
       - name: update_file
+        if: ${{ github.event_name != 'pull_request' }}
         run:  |
           sed -i "s/ROCm\/rocMLIR@[^ ]*/ROCm\/rocMLIR@${{ env.rocmlirsha }}/g" requirements.txt
           cat requirements.txt
 
       - name: Make changes to pull request
+        if: ${{ github.event_name != 'pull_request' }}
         uses: peter-evans/create-pull-request@v6.0.4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -48,3 +58,31 @@ jobs:
             skip bot checks
           draft: false
           base: develop
+      
+      - name: Checkout utils
+        if: ${{ github.event_name != 'pull_request' }}
+        uses: actions/checkout@v4.1.1
+        with:
+          repository: IgorMirosavljevicHTEC/migraphx-benchmark-utils
+          path: migraph-benchmark-utils
+          token: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Rebuild docker
+        if: ${{ github.event_name != 'pull_request' }}
+        run: |
+          echo "Build temp docker image"
+          
+      - name: Run extended accuracy test
+        if: ${{ github.event_name != 'pull_request' }}
+        run: |
+          echo "start temp docker and run extended accuracy"
+          
+      - name: Post accuracy comment to PR
+        if: ${{ github.event_name != 'pull_request' }}
+        run: |
+          echo "Post comment on PR"
+          
+      - name: After merge
+        if: ${{ github.event_name == 'pull_request' && github.event.action == 'closed' }}
+        run: |
+          echo "After merge rename docker image"
