@@ -86,6 +86,7 @@ jobs:
         #if: ${{ github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == 'true' && startsWith(github.event.pull.request.head.ref, 'rocMLIR-sync-') }}
         #if: ${{ github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == 'true' && github.head_ref == 'rocMLIR-sync-*' }}
         #if: ${{ github.event.action == 'closed' && github.event.pull_request.merged == 'true' && github.head_ref == 'rocMLIR-sync-*' }}
-        if: github.event.action == 'closed' && github.event.pull_request.merged == 'true' && startsWith(github.head_ref, 'rocMLIR-sync-')
+        #if: github.event.action == 'closed' && github.event.pull_request.merged == 'true' && startsWith(github.head_ref, 'rocMLIR-sync-')
+        if: github.event.pull_request.merged == true && github.event.pull_request.head.ref == 'rocMLIR-sync-2024-04-23'
         run: |
           echo "After merge rename docker image"
