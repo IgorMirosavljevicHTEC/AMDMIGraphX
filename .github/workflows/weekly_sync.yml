@@ -74,17 +74,17 @@ jobs:
           token: ${{ secrets.MIGRAPHX_BOT_TOKEN }}
           ref: main
           
-      - name: Rebuild base image
-        if: ${{ github.event_name != 'pull_request' }}
-        env:
-          ROCM_RELEASE: '6.0.2'
-          ROCM_BASE: 'rocm/dev-ubuntu-20.04:6.0.2'
-          DOCKERIMAGE: 'rocm-migraphx:6.0.2-temp'
-          BUILD_NAVI: '0'
-          TOKEN: ${{ secrets.MIGRAPHX_BOT_TOKEN }}
-        run: |
-          cd $GITHUB_WORKSPACE/migraphx-benchmark-utils/scripts
-          ./build_migraphx_docker.sh IgorMirosavljevicHTEC/migraphx-benchmark-utils
+      #- name: Rebuild base image
+      #  if: ${{ github.event_name != 'pull_request' }}
+      #  env:
+      #    ROCM_RELEASE: '6.0.2'
+      #    ROCM_BASE: 'rocm/dev-ubuntu-20.04:6.0.2'
+      #    DOCKERIMAGE: 'rocm-migraphx:6.0.2-temp'
+      #    BUILD_NAVI: '0'
+      #    TOKEN: ${{ secrets.MIGRAPHX_BOT_TOKEN }}
+      #  run: |
+      #    cd $GITHUB_WORKSPACE/migraphx-benchmark-utils/scripts
+      #    ./build_migraphx_docker.sh IgorMirosavljevicHTEC/migraphx-benchmark-utils
 
       - name: Build docker
         if: ${{ github.event_name != 'pull_request' }}
