@@ -57,7 +57,12 @@ jobs:
             skip bot checks
           draft: false
           base: develop
-      
+
+      - name: Checkout code
+        uses: actions/checkout@v4.1.1
+        with:
+          ref: rocMLIR-sync-${{ env.todays_date }}
+        
       - name: Checkout utils
         if: ${{ github.event_name != 'pull_request' }}
         uses: actions/checkout@v4.1.1
@@ -69,8 +74,17 @@ jobs:
           
       - name: Rebuild docker
         if: ${{ github.event_name != 'pull_request' }}
+        env:
+          ROCM_RELEASE: '6.0.2'
+          ROCM_BASE: 'rocm/dev-ubuntu-20.04:6.0.2'
+          DOCKERIMAGE: 'rocm-migraphx:6.0.2-temp'
+          BUILD_NAVI: '0'
+          TOKEN: ${{ secrets.MIGRAPHX_BOT_TOKEN }}
         run: |
-          echo "Build temp docker image"
+          docker images
+          cd $GITHUB_WORKSPACE/migraphx-benchmark-utils/scripts
+          ./build_migraphx_docker.sh IgorMirosavljevicHTEC/migraphx-benchmark-utils
+          docker images
           
       - name: Run extended accuracy test
         if: ${{ github.event_name != 'pull_request' }}
@@ -83,12 +97,6 @@ jobs:
           echo "Post comment on PR"
           
       - name: After merge
-        #if: ${{ github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == 'true' && startsWith(github.event.pull.request.head.ref, 'rocMLIR-sync-') }}
-        #if: ${{ github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == 'true' && github.head_ref == 'rocMLIR-sync-*' }}
-        #if: ${{ github.event.action == 'closed' && github.event.pull_request.merged == 'true' && github.head_ref == 'rocMLIR-sync-*' }}
-        #if: github.event.action == 'closed' && github.event.pull_request.merged == 'true' && startsWith(github.head_ref, 'rocMLIR-sync-')
-        ##if: github.event.pull_request.merged == true && github.event.pull_request.head.ref == 'rocMLIR-sync-2024-04-23'
-        #if: github.event.pull_request.merged == true && github.event.pull_request.head.ref == 'rocMLIR-sync-*'
         if: github.event.pull_request.merged == true && startsWith(github.event.pull_request.head.ref, 'rocMLIR-sync-')
         run: |
           echo "After merge rename docker image"
