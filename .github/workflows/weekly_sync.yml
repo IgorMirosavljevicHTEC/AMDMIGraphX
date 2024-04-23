@@ -6,7 +6,7 @@ on:
     - cron: '*/5 * * * *'
   workflow_dispatch:
   pull_request:
-    branches: [rocMLIR-sync**]
+    branches: [develop]
     types: [closed]
 
 jobs:
@@ -83,6 +83,6 @@ jobs:
           echo "Post comment on PR"
           
       - name: After merge
-        if: ${{ github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == 'true' }}
+        if: ${{ github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == 'true' && startsWith(github.event.pull.request.head.ref, 'rocMLIR-sync-') }}
         run: |
           echo "After merge rename docker image"
