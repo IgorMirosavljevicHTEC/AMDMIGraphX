@@ -117,14 +117,17 @@ jobs:
           -v /usr/share/migraphx/new-saved-models:/new-saved-models:ro
           -v $GITHUB_WORKSPACE/migraphx-benchmark-utils/scripts:/migraphx/sh:ro
           --workdir /migraphx/sh
-          migraphx-rocm:6.0.2-rocMLIR /bin/bash -c "./build_migraphx.sh && ./accuracy_test_extended.sh"
+          migraphx-rocm:6.0.2-rocMLIR /bin/bash -c "./build_migraphx.sh && ./migraphx/sh/accuracy_test_extended.sh"
           
       - name: Post accuracy comment to PR
         if: ${{ github.event_name != 'pull_request' }}
         run: |
           echo "Post comment on PR"
+          cd /usr/share/migraphx/AMD/test-results
+          ls -td -- */ | head -n 1 | cut -d'/' -f1
           
       - name: After merge
         if: github.event.pull_request.merged == true && startsWith(github.event.pull_request.head.ref, 'rocMLIR-sync-')
         run: |
+          echo "remove previous image"
           docker tag rocm-migraphx:6.0.2-temp rocm-migraphx:6.0.2-updated
