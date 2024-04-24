@@ -120,13 +120,24 @@ jobs:
           --workdir /migraphx/sh
           migraphx-rocm:6.0.2-rocMLIR /bin/bash -c "./build_migraphx.sh && ./accuracy_test-extended.sh"
           
-      - name: Post accuracy comment to PR
+      - name: Get accuracy result
         if: ${{ github.event_name != 'pull_request' }}
         run: |
-          echo "Post comment on PR"
-          echo "PR id is output from action - pull-request-number"
           cd /usr/share/migraphx/AMD/test-results
-          ls -td -- */ | head -n 1 | cut -d'/' -f1
+          echo comment_file="$(ls -td -- */ | head -n 1 | cut -d'/' -f1)/results.md" >> $GITHUB_ENV 
+
+      - name: Comment Pull Request
+        uses: thollander/actions-comment-pull-request@v2.5.0
+        with:
+    # Path of the file that should be commented
+          filePath: ${{ env.comment_file }}
+    # Github token of the repository (automatically created by Github)
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          pr_number: # optional
+
+          
+
+          
           
       - name: After merge
         if: github.event.pull_request.merged == true && startsWith(github.event.pull_request.head.ref, 'rocMLIR-sync-')
