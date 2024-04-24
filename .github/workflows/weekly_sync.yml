@@ -129,16 +129,10 @@ jobs:
       - name: Comment Pull Request
         uses: thollander/actions-comment-pull-request@v2.5.0
         with:
-    # Path of the file that should be commented
           filePath: ${{ env.comment_file }}
-    # Github token of the repository (automatically created by Github)
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          pr_number: # optional
+          pr_number: ${{ env.PULL_REQUEST_NUMBER }}
 
-          
-
-          
-          
       - name: After merge
         if: github.event.pull_request.merged == true && startsWith(github.event.pull_request.head.ref, 'rocMLIR-sync-')
         run: |
