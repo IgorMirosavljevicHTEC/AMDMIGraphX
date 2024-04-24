@@ -116,6 +116,7 @@ jobs:
           -v /usr/share/migraphx/saved-models:/saved-models:ro
           -v /usr/share/migraphx/new-saved-models:/new-saved-models:ro
           -v $GITHUB_WORKSPACE/migraphx-benchmark-utils/scripts:/migraphx/sh:ro
+          -v /usr/share/migraphx/AMD/test-results:/data/test-results
           --workdir /migraphx/sh
           migraphx-rocm:6.0.2-rocMLIR /bin/bash -c "./build_migraphx.sh && ./accuracy_test-extended.sh"
           
