@@ -123,6 +123,7 @@ jobs:
         if: ${{ github.event_name != 'pull_request' }}
         run: |
           echo "Post comment on PR"
+          echo "PR id is output from action - pull-request-number"
           cd /usr/share/migraphx/AMD/test-results
           ls -td -- */ | head -n 1 | cut -d'/' -f1
           
