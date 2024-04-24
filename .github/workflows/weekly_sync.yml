@@ -117,7 +117,7 @@ jobs:
           -v /usr/share/migraphx/new-saved-models:/new-saved-models:ro
           -v $GITHUB_WORKSPACE/migraphx-benchmark-utils/scripts:/migraphx/sh:ro
           --workdir /migraphx/sh
-          migraphx-rocm:6.0.2-rocMLIR /bin/bash -c "./build_migraphx.sh && ./migraphx/sh/accuracy_test_extended.sh"
+          migraphx-rocm:6.0.2-rocMLIR /bin/bash -c "./build_migraphx.sh && ./accuracy_test-extended.sh"
           
       - name: Post accuracy comment to PR
         if: ${{ github.event_name != 'pull_request' }}
