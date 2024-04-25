@@ -44,7 +44,7 @@ on:
 
 concurrency: 
   group: "perftest-${{ github.head_ref ||  github.base_ref || 'schedule' }}"
-  cancel-in-progress: true
+  #cancel-in-progress: true
 
 jobs:
   release:
