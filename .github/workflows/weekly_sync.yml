@@ -136,7 +136,7 @@ jobs:
         with:
           repository: IgorMirosavljevicHTEC/migraphx-reports
           path: ${{ env.REPORTS_DIR }}
-          token: ${{ secrets.gh_token }}
+          token: ${{ secrets.MIGRAPHX_BOT_TOKEN }}
         
       - name: Push accuracy result to repo
         if: ${{ github.event_name != 'pull_request' }}
