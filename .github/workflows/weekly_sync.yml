@@ -9,6 +9,9 @@ on:
     branches: [develop]
     types: [closed]
 
+env:
+  REPORTS_DIR: migraphx-reports
+  
 jobs:
   createPullRequest:
     name: Update and create pull request
@@ -124,7 +127,22 @@ jobs:
         if: ${{ github.event_name != 'pull_request' }}
         run: |
           cd /usr/share/migraphx/AMD/test-results
-          echo comment_file="$(ls -td -- */ | head -n 1 | cut -d'/' -f1)/results.md" >> $GITHUB_ENV 
+          echo last_extended="$(ls -td extended_accuracy* | head -1)" >> $GITHUB_ENV
+          echo comment_file="$(ls -td extended_accuracy* | head -1)/results.md" >> $GITHUB_ENV
+
+      - name: Checkout report's repo
+        if: ${{ github.event_name != 'pull_request' }}
+        uses: actions/checkout@v4.1.1
+        with:
+          repository: IgorMirosavljevicHTEC/migraphx-reports
+          path: ${{ env.REPORTS_DIR }}
+          token: ${{ secrets.gh_token }}
+        
+      - name: Push accuracy result to repo
+        if: ${{ github.event_name != 'pull_request' }}
+        run: |
+          cd /usr/share/migraphx/AMD/test-results
+          cp ${{ env.last_extended }} $GITHUB_WORKSPACE/${{ env.REPORTS_DIR }}/extended_accuracy_reports/${{ env.todays_date }}
 
       - name: Comment Pull Request
         uses: thollander/actions-comment-pull-request@v2.5.0
