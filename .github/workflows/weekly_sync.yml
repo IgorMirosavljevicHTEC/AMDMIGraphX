@@ -59,6 +59,10 @@ jobs:
             dependencies
             automated 
             skip bot checks
+          assignees: | 
+            IgorMirosavljevicHTEC
+          reviewers: |
+            IgorMirosavljevicHTEC
           draft: false
           base: develop
       
