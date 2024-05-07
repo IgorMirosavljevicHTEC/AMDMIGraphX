@@ -152,6 +152,7 @@ jobs:
           git push
 
       - name: Comment Pull Request
+        if: ${{ github.event_name == 'pull_request' && github.event.action != 'closed' }}
         uses: thollander/actions-comment-pull-request@v2.5.0
         with:
           filePath: /usr/share/migraphx/AMD/test-results/${{ env.comment_file }}
