@@ -144,6 +144,12 @@ jobs:
           cd /usr/share/migraphx/AMD/test-results
           mkdir -p $GITHUB_WORKSPACE/${{ env.REPORTS_DIR }}/extended_accuracy_reports/${{ env.todays_date }}
           cp -r ${{ env.last_extended }}/. $GITHUB_WORKSPACE/${{ env.REPORTS_DIR }}/extended_accuracy_reports/${{ env.todays_date }}
+          cd $GITHUB_WORKSPACE/${{ env.REPORTS_DIR }}
+          git add .
+          git config --local user.email github-actions@github.com
+          git config --local user.name github-actions
+          git commit -m "Extended accuracy results" -a
+          git push
 
       - name: Comment Pull Request
         uses: thollander/actions-comment-pull-request@v2.5.0
