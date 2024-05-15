@@ -1,0 +1,16 @@
+name: Test inputs
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: *version.description
+        required: *version.required
+        default: *version.default
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Input value
+        run: |
+        echo "Check input value: ${{ github.event.inputs.version }}"
+        
