@@ -1,7 +1,10 @@
 name: Test inputs
 on:
   workflow_dispatch:
-  
+
+extends:
+  - .github/workflows/inputs.yaml
+
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -9,11 +12,11 @@ jobs:
       - name: checkout
         uses: actions/checkout@v4.1.1
         
-      - name: use template
-        id: template
-        uses: ./.github/workflows/inputs.yaml
-        with:
-          onnx_version: ${{ github.event.inputs.onnx_version }}
+#      - name: use template
+#        id: template
+#        uses: ./.github/workflows/inputs.yaml
+#        with:
+#          onnx_version: ${{ github.event.inputs.onnx_version }}
           
       - name: get value
         run: |
