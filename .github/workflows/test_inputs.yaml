@@ -12,7 +12,7 @@ jobs:
         
       - name: use template
         id: template
-        uses: "./.github/workflows/inputs.yaml"
+        uses: "./.github/template/"
         with:
           onnx_version: ${{ github.event.inputs.onnx_version }}
           
