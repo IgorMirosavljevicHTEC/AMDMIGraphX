@@ -7,8 +7,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: use template
+        id: template
         uses: ./.github/workflows/inputs.yaml
         with:
           onnx_version: ${{ github.event.inputs.onnx_version }}
       - name: get value
-        run: echo "value is: ${{ github.event.inputs.onnx_version }}"
+        run: |
+          echo "value is: ${{ steps.template.outputs.onnx_version }}"
+        
