@@ -3,9 +3,9 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: *version.description
-        required: *version.required
-        default: *version.default
+        description: 'Test input read'
+        required: true
+        default: ${{ readFile('inputs.yaml') }}
 jobs:
   test:
     runs-on: ubuntu-latest
