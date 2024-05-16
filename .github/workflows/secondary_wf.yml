@@ -41,7 +41,7 @@ jobs:
          done < config.yml
          
       - name: call main
-        uses: IgorMirosavljevicHTEC/migraphx-benchmark/.github/main_wf.yml@develop
+        uses: IgorMirosavljevicHTEC/migraphx-benchmark/.github/main_wf.yml@main
         with:
          rocm_release: ${{ github.event.inputs.rocm_release || env.ROCM_VERSION }}
          performance_reports_repo: ${{ github.event.inputs.performance_reports_repo || env.PERFORMANCE_REPORTS_REPO }}
