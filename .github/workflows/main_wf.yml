@@ -1,32 +1,32 @@
 name: Main Workflow
  
 on:
-  workflow_dispatch:
+  workflow_call:
     inputs:
-      var1:
-        description: 'Input for VAR1'
-        #default: ${{ env.VAR1 }}
-        default: ${{ github.event.inputs.var1 }}
-      var2:
-        description: 'Input for VAR2'
-        #default: ${{ env.VAR2 }}
-        default: ${{ github.event.inputs.var2 }}
+      rocm_release:
+        type: string
+        description: ROCm release version
+        required: true
+      performance_reports_repo:
+        type: string
+        description: Result repository
+        required: true
+      benchmark_utils_repo:
+        type: string
+        description: Repository where benchmark utils are stored
+        required: true
+      organization:
+        type: string
+        description: Organization based on which location of files will be different
+        required: true
  
 jobs:
   main_job:
     runs-on: ubuntu-latest
     steps:
-      - name: Run Secondary Workflow
-        uses: ./.github/workflows/secondary_wf.yml
- 
-      - name: Additional Step 1
-        run: echo "This is an additional step in the main workflow."
-        env:
-          VAR1: ${{ github.event.inputs.var1 }}
-          VAR2: ${{ github.event.inputs.var2 }}
- 
-      - name: Additional Step 2
+      - name: check inputs
         run: |
-          echo "This is another additional step in the main workflow."
-          echo "VAR1=${{ github.event.inputs.var1 }}"
-          echo "VAR2=${{ github.event.inputs.var2 }}"
+         echo "ROCM: ${{ inputs.rocm_release }}"
+         echo "ORG: ${{ inputs.organization }}"
+         echo "REPORTS: ${{ inputs.performance_reports_repo }}"
+         echo "UTILS: ${{ inputs.benchmark_utils_repo }}"
