@@ -44,6 +44,12 @@ jobs:
          BENCHMARK_UTILS_REPO=$(awk '/BENCHMARK_UTILS_REPO:/ {print $2}' config.yml)
          PERFORMANCE_REPORTS_REPO=$(awk '/PERFORMANCE_REPORTS_REPO:/ {print $2}' config.yml)
          ORGANIZATION_REPO=$(awk '/ORGANIZATION_REPO:/ {print $2}' config.yml)
+         echo "========"
+         echo "$ROCM_VERSION"
+         echo "$BENCHMARK_UTILS_REPO"
+         echo "$PERFORMANCE_REPORTS_REPO"
+         echo "$ORGANIZATION_REPO"
+         echo "========"
          echo "rocm_version=$ROCM_VERSION" >> $GITHUB_OUTPUT
          echo "utils_repo=$BENCHMARK_UTILS_REPO" >> $GITHUB_OUTPUT
          echo "reports_repo=$PERFORMANCE_REPORTS_REPO" >> $GITHUB_OUTPUT
