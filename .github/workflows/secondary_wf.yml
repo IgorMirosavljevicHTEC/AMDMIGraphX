@@ -39,13 +39,13 @@ jobs:
           value=$(echo "$line" | cud -d ':' -f 2- | tr -d '[:space:]')
           export "$parameter"="$value"
          done < config.yml
-         
-      - name: call main
-        uses: IgorMirosavljevicHTEC/migraphx-benchmark/.github/main_wf.yml@main
-        with:
-         rocm_release: ${{ github.event.inputs.rocm_release || env.ROCM_VERSION }}
-         performance_reports_repo: ${{ github.event.inputs.performance_reports_repo || env.PERFORMANCE_REPORTS_REPO }}
-         benchmark_utils_repo: ${{ github.event.inputs.benchmark_utils_repo || env.BENCHMARK_UTILS_REPO }}
-         organization: ${{ github.event.inputs.organization || env.ORGANIZATION_REPO }}
+
+  call_reusable:
+    uses: IgorMirosavljevicHTEC/migraphx-benchmark/.github/workflows/main_wf.yml@main
+    with:
+     rocm_release: ${{ github.event.inputs.rocm_release || env.ROCM_VERSION }}
+     performance_reports_repo: ${{ github.event.inputs.performance_reports_repo || env.PERFORMANCE_REPORTS_REPO }}
+     benchmark_utils_repo: ${{ github.event.inputs.benchmark_utils_repo || env.BENCHMARK_UTILS_REPO }}
+     organization: ${{ github.event.inputs.organization || env.ORGANIZATION_REPO }}
 
         
