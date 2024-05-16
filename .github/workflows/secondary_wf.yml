@@ -46,6 +46,6 @@ jobs:
          rocm_release: ${{ github.event.inputs.rocm_release || ${{ env.ROCM_VERSION }} }}
          performance_reports_repo: ${{ github.event.inputs.performance_reports_repo || ${{ env.PERFORMANCE_REPORTS_REPO }} }}
          benchmark_utils_repo: ${{ github.event.inputs.benchmark_utils_repo || ${{ env.BENCHMARK_UTILS_REPO }} }}
-         organization: ${{ github.event.inputs.organization || ${{ env.ORGANIZATION }} }}
+         organization: ${{ github.event.inputs.organization || ${{ env.ORGANIZATION_REPO }} }}
 
         
