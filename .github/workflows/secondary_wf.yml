@@ -40,7 +40,7 @@ jobs:
         run: |
          pwd
          cd .github/workflows
-         ROCM_VERSION=$(awk '/ROCM_VERSION:/ {print $2}' config.yml)
+         ROCM_VERSION=$(grep 'ROCM_VERSION' config.yml | cut -d "'" -f2)
          BENCHMARK_UTILS_REPO=$(awk '/BENCHMARK_UTILS_REPO:/ {print $2}' config.yml)
          PERFORMANCE_REPORTS_REPO=$(awk '/PERFORMANCE_REPORTS_REPO:/ {print $2}' config.yml)
          ORGANIZATION_REPO=$(awk '/ORGANIZATION_REPO:/ {print $2}' config.yml)
