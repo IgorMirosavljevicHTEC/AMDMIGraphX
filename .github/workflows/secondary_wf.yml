@@ -36,6 +36,8 @@ jobs:
       - name: Get config
         id: get_config
         run: |
+         pwd
+         cd .github/workflows
          ROCM_VERSION=$(awk '/ROCM_VERSION:/ {print $2}' config.yml)
          BENCHMARK_UTILS_REPO=$(awk '/BENCHMARK_UTILS_REPO:/ {print $2}' config.yml)
          PERFORMANCE_REPORTS_REPO=$(awk '/PERFORMANCE_REPORTS_REPO:/ {print $2}' config.yml)
