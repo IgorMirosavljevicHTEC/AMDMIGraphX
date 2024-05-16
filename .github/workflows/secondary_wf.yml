@@ -1,0 +1,24 @@
+name: Secondary Workflow
+ 
+on:
+  workflow_run:
+    workflows: ["Main Workflow"]
+    types:
+      - completed
+ 
+jobs:
+  secondary_job:
+    runs-on: ubuntu-latest
+ 
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Set Environment Variables from Config
+        run: |
+          # Read values from config file (assuming it's in the root directory)
+          # Replace `config.yml` with the actual name of your config file
+          VAR1=$(cat config.yml | yq -r .var1)
+          VAR2=$(cat config.yml | yq -r .var2)
+          # Set environment variables
+          echo "VAR1=$VAR1" >> $GITHUB_ENV
+          echo "VAR2=$VAR2" >> $GITHUB_ENV
