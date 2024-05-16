@@ -5,10 +5,12 @@ on:
     inputs:
       var1:
         description: 'Input for VAR1'
-        default: ${{ env.VAR1 }}
+        #default: ${{ env.VAR1 }}
+        default: ${{ github.event.inputs.var1 }}
       var2:
         description: 'Input for VAR2'
-        default: ${{ env.VAR2 }}
+        #default: ${{ env.VAR2 }}
+        default: ${{ github.event.inputs.var2 }}
  
 jobs:
   main_job:
