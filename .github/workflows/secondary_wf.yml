@@ -65,9 +65,10 @@ jobs:
     needs: performance_test
     uses: IgorMirosavljevicHTEC/migraphx-benchmark/.github/workflows/main_wf.yml@main
     with:
-     rocm_release: ${{ github.event.inputs.rocm_release || '${{ needs.performance_test.outputs.rocm_version }}' }}
-     performance_reports_repo: ${{ github.event.inputs.performance_reports_repo || '${{ needs.performance_test.outputs.reports_repo }}' }}
-     benchmark_utils_repo: ${{ github.event.inputs.benchmark_utils_repo || '${{ needs.performance_test.outputs.utils_repo }}' }}
-     organization: ${{ github.event.inputs.organization || '${{ needs.performance_test.outputs.repo_org }}' }}
+     #rocm_release: ${{ github.event.inputs.rocm_release || '${{ needs.performance_test.outputs.rocm_version }}' }}
+     rocm_release: ${{ github.event.inputs.rocm_release || needs.performance_test.outputs.rocm_version }}
+     performance_reports_repo: ${{ github.event.inputs.performance_reports_repo || needs.performance_test.outputs.reports_repo }}
+     benchmark_utils_repo: ${{ github.event.inputs.benchmark_utils_repo || needs.performance_test.outputs.utils_repo }}
+     organization: ${{ github.event.inputs.organization || needs.performance_test.outputs.repo_org }}
 
         
