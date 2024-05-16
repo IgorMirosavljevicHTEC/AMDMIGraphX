@@ -1,24 +1,51 @@
 name: Secondary Workflow
  
 on:
-  workflow_run:
-    workflows: ["Main Workflow"]
-    types:
-      - completed
+  workflow_dispatch:
+   inputs:
+    rocm_release:
+     description: ROCm Version
+     required: true
+     default: '6.0.2'
+    performance_reports_repo:
+     description: Repository where performance reports are stored
+     required: true
+     default: 'ROCm/migraphx-reports'
+    benchmark_utils_repo:
+     description: Repository where benchmark utils are stored
+     required: true
+     default: "ROCm/migraphx-benchmark-utils"
+    organization:
+     description: Organization based on which location of files will be different
+     required: true
+     default: "AMD"
+
  
 jobs:
-  secondary_job:
+  performance_test:
     runs-on: ubuntu-latest
- 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-      - name: Set Environment Variables from Config
+      - name: checkout
+        uses: actions/checkout@4.1.1
+      
+      - name: read config
         run: |
-          # Read values from config file (assuming it's in the root directory)
-          # Replace `config.yml` with the actual name of your config file
-          VAR1=$(cat config.yml | yq -r .var1)
-          VAR2=$(cat config.yml | yq -r .var2)
-          # Set environment variables
-          echo "VAR1=$VAR1" >> $GITHUB_ENV
-          echo "VAR2=$VAR2" >> $GITHUB_ENV
+         echo "here code for reading config and passing to main"
+         while IFS= read -r line; do
+          if [[ $line =~ ^\s*# || $line =~ ^\s*$ ]]; then
+           continue
+          fi
+          parameter=$(echo "$line" | cut -d ':' -f 1 | tr -d '[:space:]')
+          value=$(echo "$line" | cud -d ':' -f 2- | tr -d '[:space:]')
+          export "$parameter"="$value"
+         done < config.yml
+         
+      - name: call main
+        uses: IgorMirosavljevicHTEC/AMDMIGraphX/.github/main_wf.yml@develop
+        with:
+         rocm_release: ${{ github.event.inputs.rocm_release || ${{ env.ROCM_VERSION }} }}
+         performance_reports_repo: ${{ github.event.inputs.performance_reports_repo || ${{ env.PERFORMANCE_REPORTS_REPO }} }}
+         benchmark_utils_repo: ${{ github.event.inputs.benchmark_utils_repo || ${{ env.BENCHMARK_UTILS_REPO }} }}
+         organization: ${{ github.event.inputs.organization || ${{ env.ORGANIZATION }} }}
+
+        
