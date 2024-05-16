@@ -41,9 +41,9 @@ jobs:
          pwd
          cd .github/workflows
          ROCM_VERSION=$(grep 'ROCM_VERSION' config.yml | cut -d "'" -f2)
-         BENCHMARK_UTILS_REPO=$(awk -F "'" '/BENCHMARK_UTILS_REPO/ {print $2}' config.yml)
-         PERFORMANCE_REPORTS_REPO=$(awk '/PERFORMANCE_REPORTS_REPO:/ {print $2}' config.yml)
-         ORGANIZATION_REPO=$(awk '/ORGANIZATION_REPO:/ {print $2}' config.yml)
+         BENCHMARK_UTILS_REPO=$(grep 'BENCHMARK_UTILS_REPO' config.yml | cut -d "'" -f2)
+         PERFORMANCE_REPORTS_REPO=$(grep 'PERFORMANCE_REPORTS_REPO' config.yml | cut -d "'" -f2)
+         ORGANIZATION_REPO=$(grep 'ORGANIZATION_REPO' config.yml | cut -d "'" -f2)
          echo "========"
          echo "$ROCM_VERSION"
          echo "$BENCHMARK_UTILS_REPO"
