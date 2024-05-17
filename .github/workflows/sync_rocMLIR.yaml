@@ -4,6 +4,9 @@ on:
   #schedule:
     #- cron: '10 17 * * 5'
     #- cron: '*/5 * * * *'
+  pull_request:
+    branches: [develop]
+    types: [synchronize, closed]
   workflow_dispatch:
     inputs:
       rocm_release:
