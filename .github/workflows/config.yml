@@ -20,7 +20,7 @@ PERFORMANCE_BACKUP_REPO : 'IgorMirosavljevicHTEC/performance-backup'
 RESULTS_TO_COMPARE : '10'
 #number of previous performance results to be used in calculations
 CALCULATION_METHOD_FLAG : '-r'
-#calculation method used in reporting, values
+#calculation method used in reporting, -m for Max value; -s for Std dev; -r for Threshold file
 PERFORMANCE_TEST_TIMEOUT : '30m'
 #timeout for each model after which test is aborted
 
