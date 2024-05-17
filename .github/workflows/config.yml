@@ -1,4 +1,4 @@
-#===ROCM INFO===
+#=====ROCM INFO=====
 ROCM_VERSION : '6.0.2'
 #default ROCm version to be used
 ROCM_BASE_IMAGE : 'rocm/dev-ubuntu-20.04'
@@ -10,13 +10,13 @@ USE_NAVI : '0'
 OVERWRITE_EXISTING : 'true'
 #building new ROCm image overwrites old with same version
 
-#===REPOS INFO===
+#=====REPOS INFO=====
 ORGANIZATION_REPO : 'AMD'
 BENCHMARK_UTILS_REPO : 'IgorMirosavljevicHTEC/migraphx-benchmark-utils'
 PERFORMANCE_REPORTS_REPO : 'IgorMirosavljevicHTEC/performance-reports'
 PERFORMANCE_BACKUP_REPO : 'IgorMirosavljevicHTEC/performance-backup'
 
-#===PERFORMANCE SCRIPT PARAMETERS===
+#=====PERFORMANCE SCRIPT PARAMETERS=====
 RESULTS_TO_COMPARE : '10'
 #number of previous performance results to be used in calculations
 CALCULATION_METHOD_FLAG : '-r'
@@ -24,3 +24,6 @@ CALCULATION_METHOD_FLAG : '-r'
 PERFORMANCE_TEST_TIMEOUT : '30m'
 #timeout for each model after which test is aborted
 
+#===== W A R N I N G =====
+#VARIABLE NAMES NOT TO BE CHANGED, VALUES ONLY!
+#VALUES MUST BE ENGLOSED IN SINGLE QUOTES!
