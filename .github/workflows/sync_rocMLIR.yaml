@@ -1,4 +1,4 @@
-name: rocMLIR main weekly sync
+name: rocMLIR sync with extended accuracy
 
 on:
   #schedule:
