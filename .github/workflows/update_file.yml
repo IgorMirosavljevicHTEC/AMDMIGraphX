@@ -29,5 +29,10 @@ jobs:
         run: |
           echo "Test sudo"
           sudo rocm-smi --device 6 --setsrange 700 800 --autorespond y
+
+      - name: test GH vars
+        run: |
+          echo "REPO: $GITHUB_REPOSITORY"
+          echo "RUN: $GITHUB_RUN_ID"
         
           
