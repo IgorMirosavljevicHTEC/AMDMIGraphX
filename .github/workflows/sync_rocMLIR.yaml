@@ -2,7 +2,7 @@ name: rocMLIR sync with extended accuracy
 
 on:
   schedule:
-    - cron: '0 23 * * sun'
+    - cron: '50 23 * * sun'
   pull_request:
     branches: [develop]
     types: [synchronize, closed]
