@@ -2,7 +2,7 @@ name: rocMLIR sync with extended accuracy
 
 on:
   schedule:
-    - cron: '50 14 * * sun'
+    - cron: '5 15 * * sun'
     #- cron: '*/5 * * * *'
   pull_request:
     branches: [develop]
@@ -79,13 +79,13 @@ jobs:
         run: |
           echo "CHECK ENV VARS"
           echo "=============="
-          echo "ROCM:$ROCM_VERSION"
-          echo "BASE:$ROCM_BASE_IMAGE"
-          echo "DOCKER:$ROCM_BUILT_IMAGE"
-          echo "UTILS:$BENCHMARK_UTILS_REPO"
-          echo "REPORTS:$PERFORMANCE_REPORTS_REPO"
-          echo "ORG:$ORGANIZATION_REPO"
-          echo "NAVI:$USE_NAVI"
+          echo "rocm_version=$ROCM_VERSION"
+          echo "rocm_base_image=$ROCM_BASE_IMAGE"
+          echo "rocm_built_image=$ROCM_BUILT_IMAGE"
+          echo "use_navi=$USE_NAVI"
+          echo "utils_repo=$BENCHMARK_UTILS_REPO"
+          echo "reports_repo=$PERFORMANCE_REPORTS_REPO"
+          echo "repo_org=$ORGANIZATION_REPO"
            
   call_reusable:
     needs: get_config
