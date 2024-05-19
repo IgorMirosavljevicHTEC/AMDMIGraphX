@@ -93,7 +93,7 @@ jobs:
     with:
       rocm_release: ${{ github.event.inputs.rocm_release || needs.get_config.outputs.rocm_version }}
       base_image: ${{ github.event.inputs.base_image || needs.get_config.outputs.rocm_base_image }}
-      docker_image: ${{ github.event.inputs.docker_image || needs.get_config.outputs.eocm_built_image }}
+      docker_image: ${{ github.event.inputs.docker_image || needs.get_config.outputs.rocm_built_image }}
       build_navi: ${{ github.event.inputs.build_navi || needs.get_config.outputs.use_navi }}
       benchmark_utils_repo: ${{ github.event.inputs.benchmark_utils_repo || needs.get_config.outputs.utils_repo }}
       performance_reports_repo: ${{ github.event.inputs.performance_reports_repo || needs.get_config.outputs.reports_repo }}
