@@ -79,13 +79,13 @@ jobs:
         run: |
           echo "CHECK ENV VARS"
           echo "=============="
-          echo ${{ env.rocm_version }}
-          echo ${{ env.rocm_base_image }}
-          echo ${{ env.rocm_built_image }}
-          echo ${{ env.use_navi }}
-          echo ${{ env.utils_repo }}
-          echo ${{ env.reports_repo }}
-          echo ${{ env.repo_org }}
+          echo "ROCM:$ROCM_VERSION"
+          echo "BASE:$ROCM_BASE_IMAGE"
+          echo "DOCKER:$ROCM_BUILT_IMAGE"
+          echo "UTILS:$BENCHMARK_UTILS_REPO"
+          echo "REPORTS:$PERFORMANCE_REPORTS_REPO"
+          echo "ORG:$ORGANIZATION_REPO"
+          echo "NAVI:$USE_NAVI"
            
   call_reusable:
     needs: get_config
