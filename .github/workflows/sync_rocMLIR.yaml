@@ -51,7 +51,7 @@ jobs:
       rocm_version: ${{ steps.read_config.outputs.rocm_version }}
       rocm_base_image: ${{ steps.read_config.outputs.rocm_base_image }}
       rocm_built_image: ${{ steps.read_config.outputs.rocm_built_image }}
-      use_navi: ${{ steps.read_config.outputs.build_navi }}
+      use_navi: ${{ steps.read_config.outputs.use_navi }}
       utils_repo: ${{ steps.read_config.outputs.utils_repo }}
       reports_repo: ${{ steps.read_config.outputs.reports_repo }}
       repo_org: ${{ steps.read_config.outputs.repo_org }}
