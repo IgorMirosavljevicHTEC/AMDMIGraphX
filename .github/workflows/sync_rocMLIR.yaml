@@ -75,6 +75,17 @@ jobs:
           echo "utils_repo=$BENCHMARK_UTILS_REPO" >> $GITHUB_OUTPUT
           echo "reports_repo=$PERFORMANCE_REPORTS_REPO" >> $GITHUB_OUTPUT
           echo "repo_org=$ORGANIZATION_REPO" >> $GITHUB_OUTPUT
+      - name: check_vars
+        run: |
+          echo "CHECK ENV VARS"
+          echo "=============="
+          echo ${{ env.rocm_version }}
+          echo ${{ env.rocm_base_image }}
+          echo ${{ env.rocm_built_image }}
+          echo ${{ env.use_navi }}
+          echo ${{ env.utils_repo }}
+          echo ${{ env.reports_repo }}
+          echo ${{ env.repo_org }}
            
   call_reusable:
     needs: get_config
