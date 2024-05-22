@@ -21,31 +21,30 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-#ifndef MIGRAPHX_GUARD_GPU_COMPILE_MIOPEN_HPP
-#define MIGRAPHX_GUARD_GPU_COMPILE_MIOPEN_HPP
-
-#include <migraphx/config.hpp>
-#include <migraphx/instruction_ref.hpp>
-#include <string>
+#include <migraphx/gpu/compile_pointwise.hpp>
+#include <migraphx/gpu/context.hpp>
+#include <migraphx/gpu/compile_gen.hpp>
+#include <migraphx/gpu/compiler.hpp>
+#include <migraphx/module.hpp>
+#include <migraphx/instruction.hpp>
+#include <migraphx/make_op.hpp>
 
 namespace migraphx {
 inline namespace MIGRAPHX_INLINE_NS {
-
-struct module;
-struct context;
-struct operation;
-
 namespace gpu {
 
-struct compile_miopen
+operation
+compile_pointwise(context& ctx, const std::vector<migraphx::shape>& in_shapes, const_module_ref pm)
 {
-    context* ctx = nullptr;
-    std::string name() const { return "gpu::compile_miopen"; }
-    void apply(module& m) const;
-    std::size_t compile(operation& op, instruction_ref ins) const;
-};
+    auto pf            = gen::generate_pointwise(*pm, "inner_pointwise", true);
+    std::string lambda = "MIGRAPHX_LIFT(inner_pointwise)";
+    auto kernel_name   = gen::generate_name_from_ops(*pm, "kernel");
+    return gpu::compile_op("pointwise",
+                           ctx,
+                           in_shapes,
+                           {{"lambda", lambda}, {"preamble", pf}, {"kernel", kernel_name}});
+}
 
 } // namespace gpu
 } // namespace MIGRAPHX_INLINE_NS
 } // namespace migraphx
-#endif // MIGRAPHX_GUARD_GPU_COMPILE_MIOPEN_HPP

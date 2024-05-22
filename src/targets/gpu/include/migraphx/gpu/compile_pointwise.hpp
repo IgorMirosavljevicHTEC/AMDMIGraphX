@@ -21,31 +21,25 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-#ifndef MIGRAPHX_GUARD_GPU_COMPILE_MIOPEN_HPP
-#define MIGRAPHX_GUARD_GPU_COMPILE_MIOPEN_HPP
+#ifndef MIGRAPHX_GUARD_GPU_COMPILE_POINTWISE_HPP
+#define MIGRAPHX_GUARD_GPU_COMPILE_POINTWISE_HPP
 
 #include <migraphx/config.hpp>
 #include <migraphx/instruction_ref.hpp>
-#include <string>
+#include <migraphx/gpu/context.hpp>
+#include <migraphx/shape.hpp>
+#include <migraphx/module_ref.hpp>
+#include <migraphx/operation.hpp>
 
 namespace migraphx {
 inline namespace MIGRAPHX_INLINE_NS {
 
-struct module;
-struct context;
-struct operation;
-
 namespace gpu {
 
-struct compile_miopen
-{
-    context* ctx = nullptr;
-    std::string name() const { return "gpu::compile_miopen"; }
-    void apply(module& m) const;
-    std::size_t compile(operation& op, instruction_ref ins) const;
-};
+operation
+compile_pointwise(context& ctx, const std::vector<migraphx::shape>& in_shapes, const_module_ref pm);
 
 } // namespace gpu
 } // namespace MIGRAPHX_INLINE_NS
 } // namespace migraphx
-#endif // MIGRAPHX_GUARD_GPU_COMPILE_MIOPEN_HPP
+#endif // MIGRAPHX_GUARD_GPU_COMPILE_POINTWISE_HPP

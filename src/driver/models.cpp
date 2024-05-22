@@ -21,31 +21,25 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-#ifndef MIGRAPHX_GUARD_GPU_COMPILE_MIOPEN_HPP
-#define MIGRAPHX_GUARD_GPU_COMPILE_MIOPEN_HPP
 
-#include <migraphx/config.hpp>
-#include <migraphx/instruction_ref.hpp>
-#include <string>
+#include "models.hpp"
+#include <migraphx/program.hpp>
+#include <migraphx/make_op.hpp>
 
 namespace migraphx {
+namespace driver {
 inline namespace MIGRAPHX_INLINE_NS {
 
-struct module;
-struct context;
-struct operation;
-
-namespace gpu {
-
-struct compile_miopen
+migraphx::program test_gemm()
 {
-    context* ctx = nullptr;
-    std::string name() const { return "gpu::compile_miopen"; }
-    void apply(module& m) const;
-    std::size_t compile(operation& op, instruction_ref ins) const;
-};
+    migraphx::program p;
+    auto* mm = p.get_main_module();
+    auto a   = mm->add_parameter("a", migraphx::shape{migraphx::shape::float_type, {4, 5}});
+    auto b   = mm->add_parameter("b", migraphx::shape{migraphx::shape::float_type, {5, 3}});
+    mm->add_instruction(migraphx::make_op("dot"), a, b);
+    return p;
+}
 
-} // namespace gpu
 } // namespace MIGRAPHX_INLINE_NS
+} // namespace driver
 } // namespace migraphx
-#endif // MIGRAPHX_GUARD_GPU_COMPILE_MIOPEN_HPP
