@@ -1,9 +1,9 @@
 name: Master weekly sync
  
 on:
+  schedule:
+   - cron: '0 15 * * sun'
   workflow_dispatch:
-  # schedule:
-  #   - cron: '10 17 * * 5'
  
 jobs:
   createPullRequest:
