@@ -2,7 +2,7 @@ name: rocMLIR sync with extended accuracy
 
 on:
   schedule:
-    - cron: '50 23 * * sun'
+    - cron: '0 7 * * sun'
   pull_request:
     branches: [develop]
     types: [synchronize, closed]
@@ -74,17 +74,6 @@ jobs:
           echo "utils_repo=$BENCHMARK_UTILS_REPO" >> $GITHUB_OUTPUT
           echo "reports_repo=$PERFORMANCE_REPORTS_REPO" >> $GITHUB_OUTPUT
           echo "repo_org=$ORGANIZATION_REPO" >> $GITHUB_OUTPUT
-      - name: check_vars
-        run: |
-          echo "CHECK ENV VARS"
-          echo "=============="
-          echo "rocm_version=$ROCM_VERSION"
-          echo "rocm_base_image=$ROCM_BASE_IMAGE"
-          echo "rocm_built_image=$ROCM_BUILT_IMAGE"
-          echo "use_navi=$USE_NAVI"
-          echo "utils_repo=$BENCHMARK_UTILS_REPO"
-          echo "reports_repo=$PERFORMANCE_REPORTS_REPO"
-          echo "repo_org=$ORGANIZATION_REPO"
            
   call_reusable:
     needs: get_config
