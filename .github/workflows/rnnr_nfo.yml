@@ -10,5 +10,8 @@ jobs:
     steps:
       - name: get info
         run: |
-          echo "n: ${{ runner.name }}
-          echo "l: ${{ runner.labels }}
+          echo "n: ${{ runner.name }}"
+          echo "o: ${{ runner.os }}"
+          echo "l: ${{ runner.labels }}"
+          echo "ne: $RUNNER_NAME"
+          echo "le: $RUNNER_LABELS"
