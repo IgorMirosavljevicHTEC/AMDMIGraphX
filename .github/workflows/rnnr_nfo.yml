@@ -16,7 +16,7 @@ jobs:
           echo "ne: $RUNNER_NAME"
           echo "le: $RUNNER_LABELS"
       - name: get label
-        uses: embedded-community/get-runner-labels-action@v1
+        uses: embedded-community/get-runner-labels-action@v0.1.0
         id: runner-labels
         with:
           github-token: ${{ secrets.MIGRAPHX_BOT_TOKEN }}
