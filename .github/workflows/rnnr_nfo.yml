@@ -1,0 +1,14 @@
+name: RNNR NFO
+ 
+on:
+  workflow_dispatch:
+ 
+jobs:
+  getRNNRnfo:
+    name: getRNNRnfo
+    runs-on: self-hosted
+    steps:
+      - name: get info
+        run: |
+          echo "n: ${{ runner.name }}
+          echo "l: ${{ runner.labels }}
