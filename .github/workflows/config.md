@@ -11,7 +11,7 @@ OVERWRITE_EXISTING : 'true'
 #building new ROCm image overwrites old with same version
 
 #=====REPOS INFO=====
-ORGANIZATION_REPO : 'AMD'
+ORGANIZATION_REPO : 'HTEC'
 BENCHMARK_UTILS_REPO : 'IgorMirosavljevicHTEC/migraphx-benchmark-utils'
 PERFORMANCE_REPORTS_REPO : 'IgorMirosavljevicHTEC/migraphx-reports'
 PERFORMANCE_BACKUP_REPO : 'IgorMirosavljevicHTEC/performance-backup'
