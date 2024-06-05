@@ -18,9 +18,9 @@ jobs:
  
       - name: Merge Fast Forward Only
         env:
-          GITHUB_TOKEN: ${{ secrets.MIGRAPHX_BOT_TOKEN }}
+          TOKEN: ${{ secrets.MIGRAPHX_BOT_TOKEN }}
         run: |
           git checkout master
           git merge origin/develop --ff-only
-          git push origin HEAD
+          git push https://x-access-token:${TOKEN}@github.com/ROCm/AMDMIGraphX.git HEAD:master
         
