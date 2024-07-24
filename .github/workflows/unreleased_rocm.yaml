@@ -17,15 +17,15 @@ on:
       performance_reports_repo:
         description: Repository where performance reports are stored
         required: true
-        default: 'ROCm/migraphx-reports'
+        default: 'IgorMirosavljevicHTEC/migraphx-reports'
       benchmark_utils_repo:
         description: Repository where benchmark utils are stored
         required: true
-        default: "ROCm/migraphx-benchmark-utils"
+        default: "IgorMirosavljevicHTEC/migraphx-benchmark-utils"
       organization:
         description: Organization based on which location of files will be different
         required: true
-        default: "AMD"
+        default: "HTEC"
       result_number:
         description: Last N results
         required: true
@@ -77,7 +77,7 @@ jobs:
       
   call_reusable:
     needs: get_config
-    uses: ROCm/migraphx-benchmark/.github/workflows/unreleased_rocm.yml@main
+    uses: IgorMirosavljevicHTEC/migraphx-benchmark/.github/workflows/unreleased_rocm.yml@main
     with:
       unreleased_rocm: ${{ github.event.inputs.unreleased_rocm || '' }}
       branch_name: ${{ github.event.inputs.branch_name || 'develop' }}
