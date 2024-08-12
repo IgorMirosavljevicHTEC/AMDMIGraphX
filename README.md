@@ -7,7 +7,7 @@ for Ubuntu installation instructions (we'll provide instructions for other Linux
 > [!NOTE] 
 > You must [install ROCm](https://rocm.docs.amd.com/en/latest/deploy/linux/quick_start.html) before
 > installing MIGraphX.
-
+ 
 ## Installing from binaries
 
 Install binaries using:
