@@ -85,7 +85,7 @@ jobs:
       benchmark_utils_repo: ${{ github.event.inputs.benchmark_utils_repo || needs.get_config.outputs.utils_repo }}
       performance_reports_repo: ${{ github.event.inputs.performance_reports_repo || needs.get_config.outputs.reports_repo }}
       organization: ${{ github.event.inputs.organization || needs.get_config.outputs.repo_org }}
-      result_number: ${{ github.event.inputs.result_number || '1' }}
+      result_number: ${{ github.event.inputs.result_number || needs.get_config.outputs.perf_number }}
       flags: ${{ github.event.inputs.flags || needs.get_config.outputs.perf_flag }}
       model_timeout: ${{ github.event.inputs.model_timeout || needs.get_config.outputs.perf_timeout }}
     secrets:
